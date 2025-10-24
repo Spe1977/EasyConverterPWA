@@ -24,7 +24,60 @@
   p {
     font-size: 16px;
     color: var(--ion-color-medium);
-    margin: 0;
+    margin: 0 0 24px 0;
+  }
+}
+
+.scanner-promo-card {
+  margin: 0;
+  box-shadow: 0 4px 12px rgba(56, 128, 255, 0.2);
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+  cursor: pointer;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(56, 128, 255, 0.3);
+  }
+
+  ion-card-content {
+    padding: 16px;
+  }
+
+  .promo-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    > ion-icon:first-child {
+      font-size: 40px;
+      flex-shrink: 0;
+    }
+
+    .promo-text {
+      flex: 1;
+      text-align: left;
+
+      h3 {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--ion-color-dark);
+        margin: 0 0 4px 0;
+      }
+
+      p {
+        font-size: 14px;
+        color: var(--ion-color-medium);
+        margin: 0;
+        line-height: 1.4;
+      }
+    }
+
+    > ion-icon:last-child {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
   }
 }
 

@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
+import { PwaUpdateService } from '@core/services/pwa-update.service';
 
 @Component({
   selector: 'app-root',
@@ -6,6 +7,11 @@ import { Component } from '@angular/core';
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent {
-  constructor() {}
+export class AppComponent implements OnInit {
+  private readonly pwaUpdateService = inject(PwaUpdateService);
+
+  ngOnInit(): void {
+    // Initialize PWA update checking
+    this.pwaUpdateService.initializeUpdateChecking();
+  }
 }

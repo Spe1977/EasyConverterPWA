@@ -1,9 +1,13 @@
 {
-  "name": "app",
-  "short_name": "app",
+  "name": "EasyConverter",
+  "short_name": "EasyConverter",
+  "description": "Offline document converter and scanner. Convert between 10+ formats (PDF, TXT, MD, HTML, CSV, JSON, XLSX) and scan documents with OCR.",
+  "theme_color": "#3880ff",
+  "background_color": "#ffffff",
   "display": "standalone",
   "scope": "./",
   "start_url": "./",
+  "categories": ["productivity", "utilities"],
   "icons": [
     {
       "src": "icons/icon-72x72.png",

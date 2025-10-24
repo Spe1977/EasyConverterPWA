@@ -26,5 +26,46 @@
         ]
       }
     }
+  ],
+  "dataGroups": [
+    {
+      "name": "heavy-libraries",
+      "urls": [
+        "**/opencv.js",
+        "**/tesseract.js/**",
+        "**/tesseract-core.wasm.js",
+        "**/worker.min.js",
+        "**/tessdata/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 100,
+        "maxAge": "30d",
+        "timeout": "10s"
+      }
+    },
+    {
+      "name": "pdf-libraries",
+      "urls": [
+        "**/pdf.worker.min.js",
+        "**/pdfjs-dist/**"
+      ],
+      "cacheConfig": {
+        "strategy": "performance",
+        "maxSize": 50,
+        "maxAge": "14d",
+        "timeout": "5s"
+      }
+    },
+    {
+      "name": "api-cache",
+      "urls": [],
+      "cacheConfig": {
+        "strategy": "freshness",
+        "maxSize": 20,
+        "maxAge": "1h",
+        "timeout": "3s"
+      }
+    }
   ]
 }

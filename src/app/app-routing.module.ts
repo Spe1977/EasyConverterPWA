@@ -7,6 +7,10 @@ const routes: Routes = [
     loadChildren: () => import('./home/home.module').then((m) => m.HomePageModule),
   },
   {
+    path: 'scanner',
+    loadChildren: () => import('./features/scanner/scanner.module').then((m) => m.ScannerModule),
+  },
+  {
     path: '',
     redirectTo: 'home',
     pathMatch: 'full',

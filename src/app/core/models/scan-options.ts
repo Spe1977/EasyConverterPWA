@@ -3,7 +3,11 @@
  */
 export interface ScanOptions {
   quality?: number; // 1-100
-  autoEnhance?: boolean; // Auto correzione luminosità/contrasto
+  source?: 'camera' | 'photos' | 'gallery'; // Sorgente immagine
+  resultType?: 'uri' | 'base64' | 'dataUrl'; // Tipo risultato
+  autoDetect?: boolean; // Rilevamento automatico bordi (default: true)
+  enhance?: boolean; // Auto correzione luminosità/contrasto (default: true)
+  autoEnhance?: boolean; // Alias per enhance
   detectEdges?: boolean; // Rilevamento automatico bordi
   correctPerspective?: boolean; // Correzione prospettiva
   filter?: ScanFilter; // Filtro da applicare
@@ -24,10 +28,13 @@ export enum ScanFilter {
  * Risultato di una scansione
  */
 export interface ScanResult {
-  image: string; // Base64 data URL
+  success: boolean; // Indica se la scansione è riuscita
+  data?: string; // Base64 data o URI
+  image?: string; // Base64 data URL (deprecated, usa data)
   text?: string; // Testo estratto con OCR (se abilitato)
   confidence?: number; // Confidenza OCR (0-100)
-  metadata: {
+  error?: string; // Messaggio di errore se success = false
+  metadata?: {
     width: number;
     height: number;
     format: string;
@@ -51,4 +58,27 @@ export interface DocumentEdges {
   topRight: Point;
   bottomLeft: Point;
   bottomRight: Point;
+}
+
+/**
+ * Lingue supportate per OCR
+ */
+export type OcrLanguage = 'ita' | 'eng' | 'fra' | 'deu' | 'spa' | 'por' | 'rus' | 'chi_sim';
+
+/**
+ * Risultato OCR
+ */
+export interface OcrResult {
+  success: boolean;
+  text?: string;
+  confidence?: number; // 0-1
+  error?: string;
+}
+
+/**
+ * Progress OCR (0-1)
+ */
+export interface OcrProgress {
+  progress: number; // 0-1
+  status: string;
 }

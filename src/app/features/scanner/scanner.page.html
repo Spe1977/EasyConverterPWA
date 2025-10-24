@@ -1,0 +1,167 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/home"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Scanner Documenti</ion-title>
+    <ion-buttons slot="end">
+      @if (scannedImage()) {
+        <ion-button (click)="resetScan()">
+          <ion-icon slot="icon-only" name="refresh"></ion-icon>
+        </ion-button>
+      }
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true" class="ion-padding">
+  <!-- Hero Section -->
+  @if (!scannedImage()) {
+    <div class="hero-section">
+      <ion-icon name="scan-outline" color="primary"></ion-icon>
+      <h2>Scansiona Documenti</h2>
+      <p>Cattura documenti con la fotocamera, rileva automaticamente i bordi e applica OCR</p>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons">
+      <ion-button expand="block" size="large" (click)="scanDocument()" [disabled]="isProcessing()">
+        <ion-icon slot="start" name="camera"></ion-icon>
+        Scatta Foto
+      </ion-button>
+
+      <ion-button expand="block" size="large" fill="outline" (click)="pickFromGallery()" [disabled]="isProcessing()">
+        <ion-icon slot="start" name="images"></ion-icon>
+        Carica da Galleria
+      </ion-button>
+    </div>
+
+    <!-- Features List -->
+    <ion-list class="features-list">
+      <ion-list-header>
+        <ion-label>Funzionalità</ion-label>
+      </ion-list-header>
+      <ion-item>
+        <ion-icon name="scan" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>Rilevamento Automatico Bordi</h3>
+          <p>Trova automaticamente i bordi del documento</p>
+        </ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-icon name="crop" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>Correzione Prospettiva</h3>
+          <p>Raddrizza documenti inclinati o angolati</p>
+        </ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-icon name="contrast" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>Miglioramento Immagine</h3>
+          <p>Ottimizza contrasto e nitidezza automaticamente</p>
+        </ion-label>
+      </ion-item>
+      <ion-item>
+        <ion-icon name="text" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3>OCR Multi-Lingua</h3>
+          <p>Riconosci testo in 8 lingue diverse</p>
+        </ion-label>
+      </ion-item>
+    </ion-list>
+  } @else {
+    <!-- Scanned Image Preview -->
+    <div class="preview-section">
+      <h3>Anteprima Scansione</h3>
+
+      <!-- Progress Steps -->
+      <div class="progress-steps">
+        @for (step of steps; track step.id) {
+          <div class="step" [class.completed]="step.completed">
+            <div class="step-icon">
+              <ion-icon
+                [name]="step.completed ? 'checkmark-circle' : 'ellipse-outline'"
+                [color]="step.completed ? 'success' : 'medium'"
+              ></ion-icon>
+            </div>
+            <div class="step-label">{{ step.label }}</div>
+          </div>
+        }
+      </div>
+
+      <!-- Image Preview -->
+      <div class="image-preview">
+        <img [src]="scannedImage()" alt="Scanned document" />
+      </div>
+
+      <!-- OCR Section -->
+      <div class="ocr-section">
+        <div class="ocr-header">
+          <h4>Riconoscimento Testo (OCR)</h4>
+          <ion-select
+            [(ngModel)]="selectedLanguage"
+            interface="action-sheet"
+            placeholder="Seleziona lingua"
+            class="language-select"
+          >
+            @for (lang of availableLanguages; track lang.code) {
+              <ion-select-option [value]="lang.code">{{ lang.name }}</ion-select-option>
+            }
+          </ion-select>
+        </div>
+
+        @if (!ocrText()) {
+          <ion-button expand="block" (click)="runOcr()" [disabled]="isProcessing()">
+            <ion-icon slot="start" name="text"></ion-icon>
+            Esegui OCR
+          </ion-button>
+        } @else {
+          <div class="ocr-result">
+            <ion-card>
+              <ion-card-header>
+                <ion-card-subtitle>Testo Riconosciuto</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-textarea [value]="ocrText()" rows="10" readonly class="ocr-text"></ion-textarea>
+              </ion-card-content>
+            </ion-card>
+          </div>
+        }
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <ion-button expand="block" color="primary" (click)="downloadImage()">
+          <ion-icon slot="start" name="download"></ion-icon>
+          Salva Immagine (PNG)
+        </ion-button>
+
+        <ion-button expand="block" fill="outline" (click)="shareImage()">
+          <ion-icon slot="start" name="share"></ion-icon>
+          Condividi Immagine
+        </ion-button>
+
+        @if (ocrText()) {
+          <ion-button expand="block" color="secondary" (click)="downloadPdf()">
+            <ion-icon slot="start" name="document"></ion-icon>
+            Salva come PDF
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" color="secondary" (click)="downloadText()">
+            <ion-icon slot="start" name="document-text"></ion-icon>
+            Salva come TXT
+          </ion-button>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Processing Indicator -->
+  @if (isProcessing() && progressMessage()) {
+    <div class="processing-message">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>{{ progressMessage() }}</p>
+    </div>
+  }
+</ion-content>
