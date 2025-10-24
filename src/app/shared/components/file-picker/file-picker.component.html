@@ -1,0 +1,31 @@
+<div
+  class="file-picker-container"
+  [class.dragging]="isDragging()"
+  (click)="onPickerClick()"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)"
+>
+  <ion-icon
+    name="cloud-upload-outline"
+    class="upload-icon"
+    [class.active]="isDragging()"
+  ></ion-icon>
+
+  @if (selectedFileName()) {
+    <div class="selected-file">
+      <ion-icon name="document-outline"></ion-icon>
+      <span>{{ selectedFileName() }}</span>
+    </div>
+  } @else {
+    <div class="picker-text">
+      <h3>Drop file here or click to select</h3>
+      <p class="ion-text-center">
+        @if (accept() !== '*/*') {
+          <span>Accepted: {{ accept() }}</span><br>
+        }
+        <span>Max size: {{ formatMaxSize() }}</span>
+      </p>
+    </div>
+  }
+</div>

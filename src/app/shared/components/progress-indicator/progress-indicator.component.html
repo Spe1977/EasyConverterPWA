@@ -1,0 +1,25 @@
+@if (isActive()) {
+  <div class="progress-overlay">
+    <div class="progress-container">
+      <div class="spinner-container">
+        <ion-spinner name="crescent" color="primary"></ion-spinner>
+      </div>
+
+      <div class="progress-message">
+        <h3>{{ formattedMessage }}</h3>
+      </div>
+
+      @if (showProgress() && progress() > 0) {
+        <div class="progress-bar-container">
+          <div class="progress-bar">
+            <div
+              class="progress-fill"
+              [style.width.%]="progress()"
+            ></div>
+          </div>
+          <span class="progress-text">{{ progress() }}%</span>
+        </div>
+      }
+    </div>
+  </div>
+}

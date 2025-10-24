@@ -1,0 +1,145 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>
+      <ion-icon name="swap-horizontal-outline" class="title-icon"></ion-icon>
+      EasyConverter
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">EasyConverter</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="converter-container">
+    <!-- Hero Section -->
+    <div class="hero-section">
+      <h1>Convert Any File</h1>
+      <p>Fast, secure, and 100% offline conversion</p>
+    </div>
+
+    <!-- File Picker -->
+    <div class="section">
+      <app-file-picker
+        [maxSize]="maxFileSize"
+        (fileSelected)="onFileSelected($event)"
+        (error)="onFileError($event)"
+      ></app-file-picker>
+    </div>
+
+    <!-- Format Selector -->
+    @if (selectedFile()) {
+      <div class="section">
+        <ion-card>
+          <ion-card-header>
+            <ion-card-title>
+              <ion-icon name="settings-outline"></ion-icon>
+              Select Formats
+            </ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            <app-format-selector
+              [sourceFormat]="sourceFormat()"
+              [targetFormat]="targetFormat()"
+              [availableTargets]="availableTargets()"
+              mode="both"
+              (sourceFormatChange)="onSourceFormatChange($event)"
+              (targetFormatChange)="onTargetFormatChange($event)"
+            ></app-format-selector>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+    <!-- Action Buttons -->
+    @if (selectedFile() && sourceFormat() && targetFormat()) {
+      <div class="section">
+        <ion-button
+          expand="block"
+          size="large"
+          [disabled]="!canConvert()"
+          (click)="convert()"
+          class="convert-button"
+        >
+          <ion-icon name="shuffle-outline" slot="start"></ion-icon>
+          Convert Now
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          [disabled]="!canConvert()"
+          (click)="convertAndShare()"
+          class="share-button"
+        >
+          <ion-icon name="share-social-outline" slot="start"></ion-icon>
+          Convert & Share
+        </ion-button>
+      </div>
+    }
+
+    <!-- File Info Card -->
+    @if (selectedFile()) {
+      <div class="section">
+        <ion-card class="file-info-card">
+          <ion-card-header>
+            <ion-card-subtitle>Selected File</ion-card-subtitle>
+          </ion-card-header>
+          <ion-card-content>
+            <ion-list lines="none">
+              <ion-item>
+                <ion-icon name="document-outline" slot="start"></ion-icon>
+                <ion-label>
+                  <h3>{{ selectedFile()?.name }}</h3>
+                  <p>{{ formatFileSize(selectedFile()?.size || 0) }}</p>
+                </ion-label>
+              </ion-item>
+            </ion-list>
+          </ion-card-content>
+        </ion-card>
+      </div>
+    }
+
+    <!-- Features Section -->
+    @if (!selectedFile()) {
+      <div class="features-section">
+        <ion-grid>
+          <ion-row>
+            <ion-col size="12" size-md="4">
+              <div class="feature-card">
+                <ion-icon name="flash-outline" color="primary"></ion-icon>
+                <h3>Fast</h3>
+                <p>Lightning-fast conversions powered by your device</p>
+              </div>
+            </ion-col>
+            <ion-col size="12" size-md="4">
+              <div class="feature-card">
+                <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
+                <h3>Secure</h3>
+                <p>Your files never leave your device</p>
+              </div>
+            </ion-col>
+            <ion-col size="12" size-md="4">
+              <div class="feature-card">
+                <ion-icon name="cloud-offline-outline" color="tertiary"></ion-icon>
+                <h3>Offline</h3>
+                <p>Works perfectly without internet</p>
+              </div>
+            </ion-col>
+          </ion-row>
+        </ion-grid>
+      </div>
+    }
+  </div>
+
+  <!-- Progress Indicator -->
+  <app-progress-indicator
+    [isActive]="isConverting()"
+    [progress]="conversionProgress()"
+    [message]="'Converting file...'"
+    [showProgress]="true"
+  ></app-progress-indicator>
+</ion-content>

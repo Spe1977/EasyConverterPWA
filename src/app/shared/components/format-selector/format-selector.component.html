@@ -1,0 +1,139 @@
+<div class="format-selector">
+  <!-- Source Format Selector -->
+  @if (mode() !== 'target') {
+    <div class="format-box" (click)="openSourceModal()">
+      @if (selectedSource()) {
+        <div class="format-content">
+          <ion-icon [name]="getFormatInfo(selectedSource())?.icon || 'document-outline'"></ion-icon>
+          <div class="format-info">
+            <span class="format-label">From</span>
+            <span class="format-name">{{ getFormatInfo(selectedSource())?.label }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="format-content empty">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Select source format</span>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Arrow -->
+  @if (mode() === 'both') {
+    <div class="arrow-container">
+      <ion-icon name="arrow-forward-outline" class="arrow-icon"></ion-icon>
+    </div>
+  }
+
+  <!-- Target Format Selector -->
+  @if (mode() !== 'source') {
+    <div class="format-box" (click)="openTargetModal()">
+      @if (selectedTarget()) {
+        <div class="format-content">
+          <ion-icon [name]="getFormatInfo(selectedTarget())?.icon || 'document-outline'"></ion-icon>
+          <div class="format-info">
+            <span class="format-label">To</span>
+            <span class="format-name">{{ getFormatInfo(selectedTarget())?.label }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="format-content empty">
+          <ion-icon name="add-circle-outline"></ion-icon>
+          <span>Select target format</span>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Source Format Modal -->
+<ion-modal
+  [isOpen]="showSourceModal()"
+  (didDismiss)="showSourceModal.set(false)"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Select Source Format</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="showSourceModal.set(false)">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      @for (category of objectKeys(groupedSourceFormats()); track category) {
+        <ion-list>
+          <ion-list-header>
+            <ion-label>{{ getCategoryLabel(category) }}</ion-label>
+          </ion-list-header>
+          @for (format of groupedSourceFormats()[category]; track format.format) {
+            <ion-item
+              button
+              (click)="selectSource(format.format)"
+              [class.selected]="selectedSource() === format.format"
+            >
+              <ion-icon [name]="format.icon" slot="start"></ion-icon>
+              <ion-label>
+                <h3>{{ format.label }}</h3>
+                <p>{{ format.extensions.join(', ') }}</p>
+              </ion-label>
+              @if (selectedSource() === format.format) {
+                <ion-icon name="checkmark-circle" color="primary" slot="end"></ion-icon>
+              }
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>
+
+<!-- Target Format Modal -->
+<ion-modal
+  [isOpen]="showTargetModal()"
+  (didDismiss)="showTargetModal.set(false)"
+>
+  <ng-template>
+    <ion-header>
+      <ion-toolbar>
+        <ion-title>Select Target Format</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="showTargetModal.set(false)">Close</ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+    <ion-content>
+      @if (targetFormats().length === 0) {
+        <div class="empty-state">
+          <ion-icon name="alert-circle-outline"></ion-icon>
+          <p>Please select a source format first</p>
+        </div>
+      } @else {
+        @for (category of objectKeys(groupedTargetFormats()); track category) {
+          <ion-list>
+            <ion-list-header>
+              <ion-label>{{ getCategoryLabel(category) }}</ion-label>
+            </ion-list-header>
+            @for (format of groupedTargetFormats()[category]; track format.format) {
+              <ion-item
+                button
+                (click)="selectTarget(format.format)"
+                [class.selected]="selectedTarget() === format.format"
+              >
+                <ion-icon [name]="format.icon" slot="start"></ion-icon>
+                <ion-label>
+                  <h3>{{ format.label }}</h3>
+                  <p>{{ format.extensions.join(', ') }}</p>
+                </ion-label>
+                @if (selectedTarget() === format.format) {
+                  <ion-icon name="checkmark-circle" color="primary" slot="end"></ion-icon>
+                }
+              </ion-item>
+            }
+          </ion-list>
+        }
+      }
+    </ion-content>
+  </ng-template>
+</ion-modal>

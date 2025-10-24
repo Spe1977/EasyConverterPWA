@@ -1,0 +1,45 @@
+# Build outputs
+dist/
+www/
+build/
+.angular/
+
+# Dependencies
+node_modules/
+
+# Coverage reports
+coverage/
+
+# IDE
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Capacitor
+android/
+ios/
+.capacitor/
+
+# Environment files (formatted manually)
+.env
+.env.*
+
+# Package locks
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Compiled files
+*.js.map
+*.d.ts
+
+# Documentation
+docs/
+documentation/
+
+# Logs
+*.log
+npm-debug.log*

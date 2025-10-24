@@ -1,0 +1,7 @@
+{
+  "name": "easyconverter",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}

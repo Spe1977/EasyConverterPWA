@@ -1,0 +1,150 @@
+.progress-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.progress-container {
+  background-color: var(--ion-color-light);
+  border-radius: 16px;
+  padding: 32px 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 90%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.spinner-container {
+  ion-spinner {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+.progress-message {
+  text-align: center;
+
+  h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--ion-color-dark);
+  }
+}
+
+.progress-bar-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 8px;
+  background-color: var(--ion-color-medium-tint);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    var(--ion-color-primary),
+    var(--ion-color-primary-shade)
+  );
+  border-radius: 4px;
+  transition: width 0.3s ease;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.3),
+      transparent
+    );
+    animation: shimmer 1.5s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.progress-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ion-color-primary);
+  text-align: center;
+}
+
+// Mobile responsive
+@media (max-width: 768px) {
+  .progress-container {
+    padding: 24px 28px;
+    width: 85%;
+  }
+
+  .spinner-container ion-spinner {
+    width: 48px;
+    height: 48px;
+  }
+
+  .progress-message h3 {
+    font-size: 16px;
+  }
+
+  .progress-bar {
+    height: 6px;
+  }
+
+  .progress-text {
+    font-size: 12px;
+  }
+}
