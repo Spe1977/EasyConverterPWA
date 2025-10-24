@@ -82,11 +82,7 @@
 
 .progress-fill {
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    var(--ion-color-primary),
-    var(--ion-color-primary-shade)
-  );
+  background: linear-gradient(90deg, var(--ion-color-primary), var(--ion-color-primary-shade));
   border-radius: 4px;
   transition: width 0.3s ease;
   position: relative;
@@ -98,12 +94,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.3),
-      transparent
-    );
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
     animation: shimmer 1.5s infinite;
   }
 }

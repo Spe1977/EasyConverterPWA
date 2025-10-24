@@ -6,11 +6,7 @@
   (dragleave)="onDragLeave($event)"
   (drop)="onDrop($event)"
 >
-  <ion-icon
-    name="cloud-upload-outline"
-    class="upload-icon"
-    [class.active]="isDragging()"
-  ></ion-icon>
+  <ion-icon name="cloud-upload-outline" class="upload-icon" [class.active]="isDragging()"></ion-icon>
 
   @if (selectedFileName()) {
     <div class="selected-file">
@@ -22,7 +18,8 @@
       <h3>Drop file here or click to select</h3>
       <p class="ion-text-center">
         @if (accept() !== '*/*') {
-          <span>Accepted: {{ accept() }}</span><br>
+          <span>Accepted: {{ accept() }}</span
+          ><br />
         }
         <span>Max size: {{ formatMaxSize() }}</span>
       </p>

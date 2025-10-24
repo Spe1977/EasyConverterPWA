@@ -12,10 +12,7 @@
       @if (showProgress() && progress() > 0) {
         <div class="progress-bar-container">
           <div class="progress-bar">
-            <div
-              class="progress-fill"
-              [style.width.%]="progress()"
-            ></div>
+            <div class="progress-fill" [style.width.%]="progress()"></div>
           </div>
           <span class="progress-text">{{ progress() }}%</span>
         </div>

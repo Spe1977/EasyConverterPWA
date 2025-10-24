@@ -48,10 +48,7 @@
 </div>
 
 <!-- Source Format Modal -->
-<ion-modal
-  [isOpen]="showSourceModal()"
-  (didDismiss)="showSourceModal.set(false)"
->
+<ion-modal [isOpen]="showSourceModal()" (didDismiss)="showSourceModal.set(false)">
   <ng-template>
     <ion-header>
       <ion-toolbar>
@@ -90,10 +87,7 @@
 </ion-modal>
 
 <!-- Target Format Modal -->
-<ion-modal
-  [isOpen]="showTargetModal()"
-  (didDismiss)="showTargetModal.set(false)"
->
+<ion-modal [isOpen]="showTargetModal()" (didDismiss)="showTargetModal.set(false)">
   <ng-template>
     <ion-header>
       <ion-toolbar>

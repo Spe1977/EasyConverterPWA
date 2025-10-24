@@ -109,7 +109,7 @@ export class HomePage {
 
       // Esegui conversione
       const result = await this.converterService.convert(file, source, target, {
-        quality: environment.conversion.defaultQuality
+        quality: environment.conversion.defaultQuality,
       });
 
       this.conversionProgress.set(80);
@@ -119,11 +119,7 @@ export class HomePage {
       }
 
       // Salva il file convertito
-      await this.fileSystemService.saveFile(
-        result.fileName!,
-        result.blob!,
-        result.mimeType!
-      );
+      await this.fileSystemService.saveFile(result.fileName!, result.blob!, result.mimeType!);
 
       this.conversionProgress.set(100);
 
@@ -162,11 +158,7 @@ export class HomePage {
       }
 
       // Condividi il file
-      await this.fileSystemService.shareFile(
-        result.fileName!,
-        result.blob!,
-        result.mimeType!
-      );
+      await this.fileSystemService.shareFile(result.fileName!, result.blob!, result.mimeType!);
 
       await this.showToast('File shared successfully', 'success');
       this.resetState();
@@ -197,7 +189,7 @@ export class HomePage {
       message,
       duration: 3000,
       color,
-      position: 'bottom'
+      position: 'bottom',
     });
     await toast.present();
   }
@@ -211,7 +203,7 @@ export class HomePage {
     const alert = await this.alertController.create({
       header: 'Conversion Successful',
       message: `File converted successfully${durationText}!<br><br><strong>${fileName}</strong>`,
-      buttons: ['OK']
+      buttons: ['OK'],
     });
 
     await alert.present();

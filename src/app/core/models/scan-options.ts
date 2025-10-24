@@ -17,7 +17,7 @@ export enum ScanFilter {
   NONE = 'none',
   GRAYSCALE = 'grayscale',
   BLACK_AND_WHITE = 'blackAndWhite',
-  AUTO = 'auto'
+  AUTO = 'auto',
 }
 
 /**

@@ -11,7 +11,6 @@ import { FilePickerComponent } from '@shared/components/file-picker/file-picker.
 import { FormatSelectorComponent } from '@shared/components/format-selector/format-selector.component';
 import { ProgressIndicatorComponent } from '@shared/components/progress-indicator/progress-indicator.component';
 
-
 @NgModule({
   imports: [
     CommonModule,
@@ -21,8 +20,8 @@ import { ProgressIndicatorComponent } from '@shared/components/progress-indicato
     // Standalone components
     FilePickerComponent,
     FormatSelectorComponent,
-    ProgressIndicatorComponent
+    ProgressIndicatorComponent,
   ],
-  declarations: [HomePage]
+  declarations: [HomePage],
 })
 export class HomePageModule {}

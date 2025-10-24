@@ -12,7 +12,7 @@ import { ConversionFormat, SUPPORTED_FORMATS, FormatInfo } from '@core/models/co
   standalone: true,
   imports: [CommonModule, IonicModule],
   templateUrl: './format-selector.component.html',
-  styleUrls: ['./format-selector.component.scss']
+  styleUrls: ['./format-selector.component.scss'],
 })
 export class FormatSelectorComponent implements OnInit {
   // Inputs
@@ -41,7 +41,7 @@ export class FormatSelectorComponent implements OnInit {
   targetFormats = computed(() => {
     const available = this.availableTargets();
     if (available.length > 0) {
-      return SUPPORTED_FORMATS.filter(f => available.includes(f.format));
+      return SUPPORTED_FORMATS.filter((f) => available.includes(f.format));
     }
     return SUPPORTED_FORMATS;
   });
@@ -59,14 +59,17 @@ export class FormatSelectorComponent implements OnInit {
    * Raggruppa i formati per categoria
    */
   private groupByCategory(formats: FormatInfo[]): Record<string, FormatInfo[]> {
-    return formats.reduce((acc, format) => {
-      const category = format.category;
-      if (!acc[category]) {
-        acc[category] = [];
-      }
-      acc[category].push(format);
-      return acc;
-    }, {} as Record<string, FormatInfo[]>);
+    return formats.reduce(
+      (acc, format) => {
+        const category = format.category;
+        if (!acc[category]) {
+          acc[category] = [];
+        }
+        acc[category].push(format);
+        return acc;
+      },
+      {} as Record<string, FormatInfo[]>
+    );
   }
 
   /**
@@ -108,7 +111,7 @@ export class FormatSelectorComponent implements OnInit {
    */
   getFormatInfo(format: ConversionFormat | null): FormatInfo | null {
     if (!format) return null;
-    return SUPPORTED_FORMATS.find(f => f.format === format) || null;
+    return SUPPORTED_FORMATS.find((f) => f.format === format) || null;
   }
 
   /**
@@ -116,11 +119,11 @@ export class FormatSelectorComponent implements OnInit {
    */
   getCategoryLabel(category: string): string {
     const labels: Record<string, string> = {
-      'document': 'Documents',
-      'spreadsheet': 'Spreadsheets',
-      'pdf': 'PDF',
-      'image': 'Images',
-      'ebook': 'E-books'
+      document: 'Documents',
+      spreadsheet: 'Spreadsheets',
+      pdf: 'PDF',
+      image: 'Images',
+      ebook: 'E-books',
     };
     return labels[category] || category;
   }

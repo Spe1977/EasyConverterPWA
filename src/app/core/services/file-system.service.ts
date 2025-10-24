@@ -8,10 +8,9 @@ import { Capacitor } from '@capacitor/core';
  * Supporta sia piattaforme native (iOS/Android) che web
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class FileSystemService {
-
   /**
    * Verifica se l'app è in esecuzione su piattaforma native
    */
@@ -48,7 +47,7 @@ export class FileSystemService {
     const result = await Filesystem.writeFile({
       path: fileName,
       data: base64Clean,
-      directory: Directory.Documents
+      directory: Directory.Documents,
     });
 
     return result.uri;
@@ -124,7 +123,7 @@ export class FileSystemService {
         const file = new File([blob], fileName, { type: mimeType });
         await navigator.share({
           files: [file],
-          title: fileName
+          title: fileName,
         });
       } else {
         // Fallback: download del file
@@ -141,7 +140,7 @@ export class FileSystemService {
     const result = await Filesystem.writeFile({
       path: fileName,
       data: base64Clean,
-      directory: Directory.Cache
+      directory: Directory.Cache,
     });
 
     // Condividi usando Capacitor Share
@@ -149,7 +148,7 @@ export class FileSystemService {
       title: fileName,
       text: `Sharing ${fileName}`,
       url: result.uri,
-      dialogTitle: 'Share file'
+      dialogTitle: 'Share file',
     });
 
     // Cleanup: rimuovi file temporaneo dopo condivisione
@@ -157,7 +156,7 @@ export class FileSystemService {
       try {
         await Filesystem.deleteFile({
           path: fileName,
-          directory: Directory.Cache
+          directory: Directory.Cache,
         });
       } catch (error) {
         console.warn('Failed to cleanup temp file:', error);

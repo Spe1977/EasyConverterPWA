@@ -13,7 +13,7 @@ import TurndownService from 'turndown';
  * Coordina gli altri servizi specializzati (PDF, Image, ecc.)
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ConverterService {
   private pdfService = inject(PdfService);
@@ -66,12 +66,12 @@ export class ConverterService {
         mimeType: this.getMimeType(targetFormat),
         size: blob.size,
         success: true,
-        duration
+        duration,
       };
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: error instanceof Error ? error.message : 'Unknown error occurred',
       };
     }
   }
@@ -140,7 +140,10 @@ export class ConverterService {
     switch (targetFormat) {
       case ConversionFormat.MD:
         // TXT -> MD (wrap in code block o paragrafi)
-        const mdContent = content.split('\n').map(line => line.trim()).join('\n\n');
+        const mdContent = content
+          .split('\n')
+          .map((line) => line.trim())
+          .join('\n\n');
         return new Blob([mdContent], { type: 'text/markdown' });
 
       case ConversionFormat.HTML:
@@ -155,7 +158,7 @@ export class ConverterService {
       case ConversionFormat.PDF:
         // TXT -> PDF
         const pdfBytes = await this.pdfService.createPdfFromText(content, {
-          fontSize: options['fontSize'] || 12
+          fontSize: options['fontSize'] || 12,
         });
         return new Blob([pdfBytes], { type: 'application/pdf' });
 
@@ -309,11 +312,19 @@ export class ConverterService {
       case ConversionFormat.PNG:
       case ConversionFormat.JPEG:
         // PDF -> Image (first page only)
-        const imageBlob = await this.pdfService.convertPdfPageToImage(file, 1, options.scale || 2.0);
+        const imageBlob = await this.pdfService.convertPdfPageToImage(
+          file,
+          1,
+          options.scale || 2.0
+        );
         if (targetFormat === ConversionFormat.JPEG) {
           // Convert PNG to JPEG
           const tempFile = new File([imageBlob], 'temp.png', { type: 'image/png' });
-          return this.imageService.convertImage(tempFile, ConversionFormat.JPEG, options.quality || 85);
+          return this.imageService.convertImage(
+            tempFile,
+            ConversionFormat.JPEG,
+            options.quality || 85
+          );
         }
         return imageBlob;
 
@@ -336,14 +347,35 @@ export class ConverterService {
       [ConversionFormat.TXT]: [ConversionFormat.MD, ConversionFormat.HTML, ConversionFormat.PDF],
       [ConversionFormat.MD]: [ConversionFormat.TXT, ConversionFormat.HTML, ConversionFormat.PDF],
       [ConversionFormat.HTML]: [ConversionFormat.TXT, ConversionFormat.MD, ConversionFormat.PDF],
-      [ConversionFormat.CSV]: [ConversionFormat.JSON, ConversionFormat.XLSX, ConversionFormat.HTML, ConversionFormat.TXT],
-      [ConversionFormat.JSON]: [ConversionFormat.CSV, ConversionFormat.XLSX, ConversionFormat.HTML, ConversionFormat.TXT],
-      [ConversionFormat.XLSX]: [ConversionFormat.CSV, ConversionFormat.JSON, ConversionFormat.HTML, ConversionFormat.TXT],
-      [ConversionFormat.PDF]: [ConversionFormat.TXT, ConversionFormat.MD, ConversionFormat.HTML, ConversionFormat.PNG, ConversionFormat.JPEG],
+      [ConversionFormat.CSV]: [
+        ConversionFormat.JSON,
+        ConversionFormat.XLSX,
+        ConversionFormat.HTML,
+        ConversionFormat.TXT,
+      ],
+      [ConversionFormat.JSON]: [
+        ConversionFormat.CSV,
+        ConversionFormat.XLSX,
+        ConversionFormat.HTML,
+        ConversionFormat.TXT,
+      ],
+      [ConversionFormat.XLSX]: [
+        ConversionFormat.CSV,
+        ConversionFormat.JSON,
+        ConversionFormat.HTML,
+        ConversionFormat.TXT,
+      ],
+      [ConversionFormat.PDF]: [
+        ConversionFormat.TXT,
+        ConversionFormat.MD,
+        ConversionFormat.HTML,
+        ConversionFormat.PNG,
+        ConversionFormat.JPEG,
+      ],
       [ConversionFormat.PNG]: [ConversionFormat.JPEG, ConversionFormat.WEBP, ConversionFormat.PDF],
       [ConversionFormat.JPEG]: [ConversionFormat.PNG, ConversionFormat.WEBP, ConversionFormat.PDF],
       [ConversionFormat.JPG]: [ConversionFormat.PNG, ConversionFormat.WEBP, ConversionFormat.PDF],
-      [ConversionFormat.WEBP]: [ConversionFormat.PNG, ConversionFormat.JPEG, ConversionFormat.PDF]
+      [ConversionFormat.WEBP]: [ConversionFormat.PNG, ConversionFormat.JPEG, ConversionFormat.PDF],
     };
 
     return supportedConversions[sourceFormat]?.includes(targetFormat) || false;
@@ -353,7 +385,12 @@ export class ConverterService {
    * Helper methods
    */
   private isImageFormat(format: ConversionFormat): boolean {
-    return [ConversionFormat.PNG, ConversionFormat.JPEG, ConversionFormat.JPG, ConversionFormat.WEBP].includes(format);
+    return [
+      ConversionFormat.PNG,
+      ConversionFormat.JPEG,
+      ConversionFormat.JPG,
+      ConversionFormat.WEBP,
+    ].includes(format);
   }
 
   private isDocumentFormat(format: ConversionFormat): boolean {
@@ -361,11 +398,16 @@ export class ConverterService {
   }
 
   private isSpreadsheetFormat(format: ConversionFormat): boolean {
-    return [ConversionFormat.CSV, ConversionFormat.JSON, ConversionFormat.XLSX, ConversionFormat.ODS].includes(format);
+    return [
+      ConversionFormat.CSV,
+      ConversionFormat.JSON,
+      ConversionFormat.XLSX,
+      ConversionFormat.ODS,
+    ].includes(format);
   }
 
   private getMimeType(format: ConversionFormat): string {
-    const formatInfo = SUPPORTED_FORMATS.find(f => f.format === format);
+    const formatInfo = SUPPORTED_FORMATS.find((f) => f.format === format);
     return formatInfo?.mimeType || 'application/octet-stream';
   }
 
@@ -402,9 +444,9 @@ export class ConverterService {
    * Ottieni lista dei formati di destinazione disponibili per un formato sorgente
    */
   getAvailableTargetFormats(sourceFormat: ConversionFormat): ConversionFormat[] {
-    return SUPPORTED_FORMATS
-      .map(f => f.format)
-      .filter(f => this.isConversionSupported(sourceFormat, f));
+    return SUPPORTED_FORMATS.map((f) => f.format).filter((f) =>
+      this.isConversionSupported(sourceFormat, f)
+    );
   }
 
   /**
@@ -414,8 +456,8 @@ export class ConverterService {
     const extension = file.name.split('.').pop()?.toLowerCase();
     if (!extension) return null;
 
-    const format = SUPPORTED_FORMATS.find(f =>
-      f.extensions.some(ext => ext.toLowerCase() === `.${extension}`)
+    const format = SUPPORTED_FORMATS.find((f) =>
+      f.extensions.some((ext) => ext.toLowerCase() === `.${extension}`)
     );
 
     return format?.format || null;

@@ -26,7 +26,7 @@
       <app-file-picker
         [maxSize]="maxFileSize"
         (fileSelected)="onFileSelected($event)"
-        (error)="onFileError($event)"
+        (fileError)="onFileError($event)"
       ></app-file-picker>
     </div>
 
@@ -57,13 +57,7 @@
     <!-- Action Buttons -->
     @if (selectedFile() && sourceFormat() && targetFormat()) {
       <div class="section">
-        <ion-button
-          expand="block"
-          size="large"
-          [disabled]="!canConvert()"
-          (click)="convert()"
-          class="convert-button"
-        >
+        <ion-button expand="block" size="large" [disabled]="!canConvert()" (click)="convert()" class="convert-button">
           <ion-icon name="shuffle-outline" slot="start"></ion-icon>
           Convert Now
         </ion-button>

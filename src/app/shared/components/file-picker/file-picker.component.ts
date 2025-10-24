@@ -12,7 +12,7 @@ import { ConversionFormat } from '@core/models/conversion-format';
   standalone: true,
   imports: [CommonModule, IonicModule],
   templateUrl: './file-picker.component.html',
-  styleUrls: ['./file-picker.component.scss']
+  styleUrls: ['./file-picker.component.scss'],
 })
 export class FilePickerComponent {
   // Inputs
@@ -23,7 +23,7 @@ export class FilePickerComponent {
   // Outputs
   fileSelected = output<File>();
   filesSelected = output<File[]>();
-  error = output<string>();
+  fileError = output<string>();
 
   // State
   isDragging = signal(false);
@@ -85,10 +85,10 @@ export class FilePickerComponent {
    */
   private handleFiles(files: File[]): void {
     // Valida dimensione file
-    const invalidFiles = files.filter(f => f.size > this.maxSize());
+    const invalidFiles = files.filter((f) => f.size > this.maxSize());
     if (invalidFiles.length > 0) {
       const maxSizeMB = (this.maxSize() / (1024 * 1024)).toFixed(0);
-      this.error.emit(`File too large. Maximum size: ${maxSizeMB}MB`);
+      this.fileError.emit(`File too large. Maximum size: ${maxSizeMB}MB`);
       return;
     }
 

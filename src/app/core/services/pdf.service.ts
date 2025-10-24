@@ -6,10 +6,9 @@ import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
  * Utilizza pdf-lib per creazione e modifica, pdfjs-dist per lettura (lazy loaded)
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PdfService {
-
   /**
    * Crea un PDF da testo semplice
    * @param text Testo da inserire nel PDF
@@ -28,16 +27,16 @@ export class PdfService {
     const {
       fontSize = 12,
       margin = 50,
-      pageWidth = 595,  // A4 width in points
-      pageHeight = 842  // A4 height in points
+      pageWidth = 595, // A4 width in points
+      pageHeight = 842, // A4 height in points
     } = options;
 
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     // Calcola area di testo disponibile
-    const maxWidth = pageWidth - (margin * 2);
-    const maxHeight = pageHeight - (margin * 2);
+    const maxWidth = pageWidth - margin * 2;
+    const maxHeight = pageHeight - margin * 2;
 
     // Dividi il testo in righe
     const lines = this.wrapText(text, font, fontSize, maxWidth);
@@ -59,7 +58,7 @@ export class PdfService {
           y: yPosition,
           size: fontSize,
           font,
-          color: rgb(0, 0, 0)
+          color: rgb(0, 0, 0),
         });
         yPosition -= lineHeight;
       }
@@ -76,16 +75,12 @@ export class PdfService {
    * @param imageType Tipo di immagine ('png' | 'jpeg')
    * @returns PDF come Uint8Array
    */
-  async createPdfFromImage(
-    imageBlob: Blob,
-    imageType: 'png' | 'jpeg'
-  ): Promise<Uint8Array> {
+  async createPdfFromImage(imageBlob: Blob, imageType: 'png' | 'jpeg'): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
     const imageBytes = await imageBlob.arrayBuffer();
 
-    const image = imageType === 'png'
-      ? await pdfDoc.embedPng(imageBytes)
-      : await pdfDoc.embedJpg(imageBytes);
+    const image =
+      imageType === 'png' ? await pdfDoc.embedPng(imageBytes) : await pdfDoc.embedJpg(imageBytes);
 
     // Crea pagina con dimensioni dell'immagine
     const page = pdfDoc.addPage([image.width, image.height]);
@@ -94,7 +89,7 @@ export class PdfService {
       x: 0,
       y: 0,
       width: image.width,
-      height: image.height
+      height: image.height,
     });
 
     return pdfDoc.save();
@@ -106,24 +101,20 @@ export class PdfService {
    * @param imageType Tipo di immagini
    * @returns PDF come Uint8Array
    */
-  async createPdfFromImages(
-    images: Blob[],
-    imageType: 'png' | 'jpeg'
-  ): Promise<Uint8Array> {
+  async createPdfFromImages(images: Blob[], imageType: 'png' | 'jpeg'): Promise<Uint8Array> {
     const pdfDoc = await PDFDocument.create();
 
     for (const imageBlob of images) {
       const imageBytes = await imageBlob.arrayBuffer();
-      const image = imageType === 'png'
-        ? await pdfDoc.embedPng(imageBytes)
-        : await pdfDoc.embedJpg(imageBytes);
+      const image =
+        imageType === 'png' ? await pdfDoc.embedPng(imageBytes) : await pdfDoc.embedJpg(imageBytes);
 
       const page = pdfDoc.addPage([image.width, image.height]);
       page.drawImage(image, {
         x: 0,
         y: 0,
         width: image.width,
-        height: image.height
+        height: image.height,
       });
     }
 
@@ -151,9 +142,7 @@ export class PdfService {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ');
+      const pageText = textContent.items.map((item: any) => item.str).join(' ');
       fullText += pageText + '\n\n';
     }
 
@@ -189,7 +178,7 @@ export class PdfService {
     await page.render({
       canvasContext: context,
       viewport: viewport,
-      canvas: canvas
+      canvas: canvas,
     } as any).promise;
 
     return new Promise((resolve, reject) => {
@@ -209,10 +198,7 @@ export class PdfService {
    * @param scale Scala di rendering
    * @returns Array di blob immagini
    */
-  async convertPdfToImages(
-    file: File,
-    scale: number = 2.0
-  ): Promise<Blob[]> {
+  async convertPdfToImages(file: File, scale: number = 2.0): Promise<Blob[]> {
     const pdfjsLib = await import('pdfjs-dist');
     (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
 
@@ -241,7 +227,7 @@ export class PdfService {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await PDFDocument.load(arrayBuffer);
       const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-      copiedPages.forEach(page => mergedPdf.addPage(page));
+      copiedPages.forEach((page) => mergedPdf.addPage(page));
     }
 
     return mergedPdf.save();
@@ -259,10 +245,10 @@ export class PdfService {
     const newPdf = await PDFDocument.create();
 
     // Converti page numbers da 1-based a 0-based
-    const indices = pageNumbers.map(n => n - 1);
+    const indices = pageNumbers.map((n) => n - 1);
 
     const copiedPages = await newPdf.copyPages(pdfDoc, indices);
-    copiedPages.forEach(page => newPdf.addPage(page));
+    copiedPages.forEach((page) => newPdf.addPage(page));
 
     return newPdf.save();
   }
@@ -283,11 +269,9 @@ export class PdfService {
     const pdfDoc = await PDFDocument.load(arrayBuffer);
 
     const pages = pdfDoc.getPages();
-    const pagesToRotate = pageNumbers
-      ? pageNumbers.map(n => n - 1)
-      : pages.map((_, i) => i);
+    const pagesToRotate = pageNumbers ? pageNumbers.map((n) => n - 1) : pages.map((_, i) => i);
 
-    pagesToRotate.forEach(index => {
+    pagesToRotate.forEach((index) => {
       if (index >= 0 && index < pages.length) {
         const page = pages[index];
         const currentRotation = page.getRotation().angle;
@@ -325,19 +309,14 @@ export class PdfService {
       title,
       author,
       subject,
-      keywords
+      keywords,
     };
   }
 
   /**
    * Divide il testo in righe che si adattano alla larghezza specificata
    */
-  private wrapText(
-    text: string,
-    font: any,
-    fontSize: number,
-    maxWidth: number
-  ): string[] {
+  private wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
     const words = text.split(' ');
     const lines: string[] = [];
     let currentLine = '';

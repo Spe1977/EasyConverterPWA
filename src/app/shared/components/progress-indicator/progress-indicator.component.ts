@@ -11,7 +11,7 @@ import { IonicModule } from '@ionic/angular';
   standalone: true,
   imports: [CommonModule, IonicModule],
   templateUrl: './progress-indicator.component.html',
-  styleUrls: ['./progress-indicator.component.scss']
+  styleUrls: ['./progress-indicator.component.scss'],
 })
 export class ProgressIndicatorComponent {
   // Inputs

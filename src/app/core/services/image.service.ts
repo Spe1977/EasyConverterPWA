@@ -6,10 +6,9 @@ import { ConversionFormat } from '@core/models/conversion-format';
  * Gestisce conversioni tra formati, resize, crop e ottimizzazioni
  */
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class ImageService {
-
   /**
    * Converte un'immagine in un formato diverso
    * @param file File immagine originale
@@ -45,12 +44,7 @@ export class ImageService {
     quality: number = 85
   ): Promise<Blob> {
     const img = await this.loadImage(file);
-    const { width, height } = this.calculateDimensions(
-      img.width,
-      img.height,
-      maxWidth,
-      maxHeight
-    );
+    const { width, height } = this.calculateDimensions(img.width, img.height, maxWidth, maxHeight);
 
     const canvas = this.createCanvas(width, height);
     const ctx = canvas.getContext('2d')!;
@@ -96,17 +90,14 @@ export class ImageService {
    * @param quality Qualità output
    * @returns Blob dell'immagine ruotata
    */
-  async rotateImage(
-    file: File,
-    degrees: 90 | 180 | 270,
-    quality: number = 85
-  ): Promise<Blob> {
+  async rotateImage(file: File, degrees: 90 | 180 | 270, quality: number = 85): Promise<Blob> {
     const img = await this.loadImage(file);
 
     // Per rotazioni di 90 e 270 gradi, scambia larghezza e altezza
-    const canvas = degrees === 90 || degrees === 270
-      ? this.createCanvas(img.height, img.width)
-      : this.createCanvas(img.width, img.height);
+    const canvas =
+      degrees === 90 || degrees === 270
+        ? this.createCanvas(img.height, img.width)
+        : this.createCanvas(img.width, img.height);
 
     const ctx = canvas.getContext('2d')!;
 
@@ -141,7 +132,7 @@ export class ImageService {
 
     for (let i = 0; i < data.length; i += 4) {
       const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
-      data[i] = avg;     // R
+      data[i] = avg; // R
       data[i + 1] = avg; // G
       data[i + 2] = avg; // B
     }
@@ -159,11 +150,7 @@ export class ImageService {
    * @param quality Qualità output
    * @returns Blob dell'immagine con contrasto modificato
    */
-  async adjustContrast(
-    file: File,
-    contrast: number,
-    quality: number = 85
-  ): Promise<Blob> {
+  async adjustContrast(file: File, contrast: number, quality: number = 85): Promise<Blob> {
     const img = await this.loadImage(file);
     const canvas = this.createCanvas(img.width, img.height);
     const ctx = canvas.getContext('2d')!;

@@ -62,11 +62,7 @@ ion-card {
 }
 
 .file-info-card {
-  background: linear-gradient(
-    135deg,
-    var(--ion-color-primary-tint),
-    var(--ion-color-light)
-  );
+  background: linear-gradient(135deg, var(--ion-color-primary-tint), var(--ion-color-light));
 
   ion-card-subtitle {
     font-weight: 600;

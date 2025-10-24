@@ -10,7 +10,21 @@
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,css,json,md}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss,css,json,md}\"",
+    "e2e": "cypress open",
+    "e2e:ci": "cypress run",
+    "analyze": "ng build --stats-json && npx webpack-bundle-analyzer dist/easyconverter/stats.json",
     "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{ts,html}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{scss,css,json,md}": [
+      "prettier --write"
+    ]
   },
   "private": true,
   "dependencies": {
@@ -83,7 +97,8 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
-    "typescript": "~5.8.0"
+    "typescript": "~5.8.0",
+    "webpack-bundle-analyzer": "^4.10.2"
   },
   "description": "An Ionic project"
 }
