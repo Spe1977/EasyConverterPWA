@@ -1,12 +1,24 @@
 import { TestBed } from '@angular/core/testing';
 import { OcrService } from './ocr.service';
-import { OcrResult } from '@core/models/scan-options';
+
+// Local OcrResult type for tests to avoid module path issues
+interface OcrResult {
+  success: boolean;
+  text?: string;
+  confidence?: number;
+  error?: string;
+}
 
 describe('OcrService', () => {
   let service: OcrService;
   let mockWorker: jasmine.SpyObj<Worker>;
+  let originalTimeout: number;
 
   beforeEach(() => {
+    // Increase timeout for async operations
+    originalTimeout = jasmine.DEFAULT_TIMEOUT_INTERVAL;
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+
     // Mock Worker
     mockWorker = jasmine.createSpyObj<Worker>('Worker', ['postMessage', 'terminate']);
 
@@ -22,6 +34,7 @@ describe('OcrService', () => {
 
   afterEach(() => {
     service.terminate();
+    jasmine.DEFAULT_TIMEOUT_INTERVAL = originalTimeout;
   });
 
   it('should be created', () => {
@@ -253,16 +266,33 @@ describe('OcrService', () => {
       expect(result.error).toBe('Invalid image format');
     });
 
-    it('should throw error if worker not initialized', async () => {
+    it('should handle worker initialization failure', async () => {
+      // Create a new mock worker for this test
+      const newMockWorker = jasmine.createSpyObj<Worker>('Worker', ['postMessage', 'terminate']);
+      (window as any).Worker = jasmine.createSpy('Worker').and.returnValue(newMockWorker);
+
       const newService = new OcrService();
 
+      // Try to recognize - will auto-initialize first
+      const recognizePromise = newService.recognizeText('data:image/png;base64,ABC');
+
+      // Simulate initialization error
+      setTimeout(() => {
+        if (newMockWorker.onmessage) {
+          (newMockWorker.onmessage as any)({
+            data: { type: 'error', payload: { error: 'Failed to load Tesseract' } },
+          });
+        }
+      }, 10);
+
       try {
-        await newService.recognizeText('data:image/png;base64,ABC');
+        await recognizePromise;
         fail('Should have thrown an error');
       } catch (error: any) {
-        // Worker initialization will fail because we can't mock Worker in this context
-        expect(error).toBeDefined();
+        expect(error.message).toContain('Failed to load Tesseract');
       }
+
+      newService.terminate();
     });
   });
 
@@ -281,33 +311,26 @@ describe('OcrService', () => {
         'data:image/png;base64,img3',
       ];
 
-      const resultsPromise = service.recognizeMultiple(images);
+      let callCount = 0;
+      const expectedResults = [
+        { text: 'Text 1', confidence: 90 },
+        { text: 'Text 2', confidence: 85 },
+        { text: 'Text 3', confidence: 88 },
+      ];
 
-      // Simulate results for each image
-      const onmessageHandler = mockWorker.onmessage as any;
+      // Mock postMessage to respond immediately when called
+      mockWorker.postMessage.and.callFake((message: any) => {
+        if (message.type === 'recognize' && mockWorker.onmessage) {
+          const result = expectedResults[callCount++];
+          setTimeout(() => {
+            (mockWorker.onmessage as any)({
+              data: { type: 'result', payload: result },
+            });
+          }, 0);
+        }
+      });
 
-      // Image 1
-      setTimeout(() => {
-        onmessageHandler({
-          data: { type: 'result', payload: { text: 'Text 1', confidence: 90 } },
-        });
-      }, 10);
-
-      // Image 2
-      setTimeout(() => {
-        onmessageHandler({
-          data: { type: 'result', payload: { text: 'Text 2', confidence: 85 } },
-        });
-      }, 20);
-
-      // Image 3
-      setTimeout(() => {
-        onmessageHandler({
-          data: { type: 'result', payload: { text: 'Text 3', confidence: 88 } },
-        });
-      }, 30);
-
-      const results = await resultsPromise;
+      const results = await service.recognizeMultiple(images);
 
       expect(results.length).toBe(3);
       expect(results[0].text).toBe('Text 1');
@@ -318,25 +341,27 @@ describe('OcrService', () => {
     it('should handle errors in batch processing', async () => {
       const images = ['data:image/png;base64,img1', 'data:image/png;base64,img2'];
 
-      const resultsPromise = service.recognizeMultiple(images);
+      let callCount = 0;
 
-      const onmessageHandler = mockWorker.onmessage as any;
+      // Mock postMessage to respond with success then error
+      mockWorker.postMessage.and.callFake((message: any) => {
+        if (message.type === 'recognize' && mockWorker.onmessage) {
+          setTimeout(() => {
+            if (callCount === 0) {
+              (mockWorker.onmessage as any)({
+                data: { type: 'result', payload: { text: 'Text 1', confidence: 90 } },
+              });
+            } else {
+              (mockWorker.onmessage as any)({
+                data: { type: 'error', payload: { error: 'Processing failed' } },
+              });
+            }
+            callCount++;
+          }, 0);
+        }
+      });
 
-      // Image 1 - success
-      setTimeout(() => {
-        onmessageHandler({
-          data: { type: 'result', payload: { text: 'Text 1', confidence: 90 } },
-        });
-      }, 10);
-
-      // Image 2 - error
-      setTimeout(() => {
-        onmessageHandler({
-          data: { type: 'error', payload: { error: 'Processing failed' } },
-        });
-      }, 20);
-
-      const results = await resultsPromise;
+      const results = await service.recognizeMultiple(images);
 
       expect(results.length).toBe(2);
       expect(results[0].success).toBeTrue();

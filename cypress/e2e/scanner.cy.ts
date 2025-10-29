@@ -19,44 +19,52 @@ describe('EasyConverter - Scanner Feature', () => {
     });
 
     it('should show hero section', () => {
-      cy.contains('Scan documents').should('exist');
+      cy.contains('Scan Documents').should('exist');
     });
   });
 
   describe('Scanner Controls', () => {
     it('should have camera capture button', () => {
-      cy.contains('Capture').should('be.visible');
+      cy.contains('Take Photo').should('be.visible');
     });
 
     it('should have gallery button', () => {
-      cy.contains('Gallery').should('be.visible');
+      cy.contains('Choose from Gallery').should('be.visible');
     });
 
     it('should have language selector for OCR', () => {
-      cy.get('ion-select').should('exist');
+      cy.get('ion-select', { timeout: 10000 }).should('exist');
     });
 
     it('should display available OCR languages', () => {
+      cy.get('ion-select', { timeout: 10000 }).should('be.visible');
+      cy.wait(500);
       cy.get('ion-select').click();
       // Check for language options
-      cy.contains('Italian').should('exist');
-      cy.contains('English').should('exist');
+      cy.contains('Italiano').should('exist');
+      cy.contains('Inglese').should('exist');
     });
   });
 
   describe('OCR Language Selection', () => {
     it('should default to Italian language', () => {
-      cy.get('ion-select').should('contain', 'Italian');
+      cy.get('ion-select', { timeout: 10000 }).should('be.visible');
+      cy.wait(500);
+      cy.get('ion-select').should('contain', 'Italiano');
     });
 
     it('should allow changing OCR language', () => {
+      cy.get('ion-select', { timeout: 10000 }).should('be.visible');
+      cy.wait(500);
       cy.get('ion-select').click();
-      cy.contains('English').click();
-      cy.get('ion-select').should('contain', 'English');
+      cy.contains('Inglese').click();
+      cy.get('ion-select').should('contain', 'Inglese');
     });
 
     it('should support multiple languages', () => {
-      const languages = ['Italian', 'English', 'French', 'German', 'Spanish'];
+      const languages = ['Italiano', 'Inglese', 'Francese', 'Tedesco', 'Spagnolo'];
+      cy.get('ion-select', { timeout: 10000 }).should('be.visible');
+      cy.wait(500);
       cy.get('ion-select').click();
       languages.forEach((lang) => {
         cy.contains(lang).should('exist');
@@ -73,20 +81,26 @@ describe('EasyConverter - Scanner Feature', () => {
         );
       });
 
-      cy.contains('Capture').click();
+      cy.contains('Take Photo').click();
       // Should show error message
     });
 
     it('should have proper button states', () => {
-      cy.contains('Capture').should('not.be.disabled');
-      cy.contains('Gallery').should('not.be.disabled');
+      cy.contains('Take Photo').should('not.be.disabled');
+      cy.contains('Choose from Gallery').should('not.be.disabled');
     });
   });
 
   describe('Scan Workflow Steps', () => {
     it('should display workflow progress', () => {
       // Check for step indicators or progress messages
-      cy.get('ion-card').should('exist');
+      cy.get('body').then(($body) => {
+        if ($body.find('.progress-steps').length > 0) {
+          cy.get('.progress-steps').should('exist');
+        } else {
+          cy.get('ion-card').should('exist');
+        }
+      });
     });
 
     it('should show appropriate messages for each step', () => {

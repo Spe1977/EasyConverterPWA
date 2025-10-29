@@ -92,9 +92,11 @@ export class ConverterService {
 
     // Immagine -> PDF
     if (targetFormat === ConversionFormat.PDF) {
-      const imageType = sourceFormat === ConversionFormat.PNG ? 'png' : 'jpeg';
-      const pdfBytes = await this.pdfService.createPdfFromImage(file, imageType);
-      return new Blob([pdfBytes], { type: 'application/pdf' });
+      // Converti sempre a PNG per evitare errori con JPEG corrotti o formati misti
+      // PNG è più affidabile e supporta la trasparenza
+      const pngBlob = await this.imageService.convertImage(file, ConversionFormat.PNG, 100);
+      const pdfBytes = await this.pdfService.createPdfFromImage(pngBlob, 'png');
+      return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
     }
 
     throw new Error(`Conversion from ${sourceFormat} to ${targetFormat} not implemented`);
@@ -160,7 +162,7 @@ export class ConverterService {
         const pdfBytes = await this.pdfService.createPdfFromText(content, {
           fontSize: options['fontSize'] || 12,
         });
-        return new Blob([pdfBytes], { type: 'application/pdf' });
+        return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
 
       default:
         throw new Error(`Conversion from TXT to ${targetFormat} not supported`);
@@ -195,7 +197,7 @@ export class ConverterService {
         // MD -> HTML -> PDF
         const html = await marked(content);
         const pdfBytes = await this.pdfService.createPdfFromHtml(html);
-        return new Blob([pdfBytes], { type: 'application/pdf' });
+        return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
 
       default:
         throw new Error(`Conversion from MD to ${targetFormat} not supported`);
@@ -226,7 +228,7 @@ export class ConverterService {
       case ConversionFormat.PDF:
         // HTML -> PDF
         const pdfBytes = await this.pdfService.createPdfFromHtml(content);
-        return new Blob([pdfBytes], { type: 'application/pdf' });
+        return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
 
       default:
         throw new Error(`Conversion from HTML to ${targetFormat} not supported`);

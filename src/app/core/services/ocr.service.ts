@@ -1,6 +1,8 @@
 import { Injectable, OnDestroy } from '@angular/core';
 import { Observable, Subject } from 'rxjs';
 import { OcrResult, OcrProgress } from '@core/models/scan-options';
+import { environment } from '@env/environment';
+import { retryWithBackoff } from '@core/utils/retry.util';
 
 /**
  * OCR Service
@@ -31,6 +33,7 @@ export class OcrService implements OnDestroy {
 
   /**
    * Inizializza il worker OCR con le lingue specificate
+   * Include retry logic con exponential backoff
    */
   public async initialize(languages: string[] = ['ita']): Promise<void> {
     if (this.isInitialized && this.arraysEqual(this.currentLanguages, languages)) {
@@ -39,45 +42,73 @@ export class OcrService implements OnDestroy {
 
     this.currentLanguages = languages;
 
-    // Create worker
-    this.worker = new Worker(new URL('../../workers/ocr.worker', import.meta.url), {
-      type: 'module',
-    });
+    return retryWithBackoff(
+      async () => {
+        // Create worker
+        this.worker = new Worker(new URL('../../../workers/ocr.worker.ts', import.meta.url), {
+          type: 'module',
+        });
 
-    // Setup message handler
-    return new Promise((resolve, reject) => {
-      if (!this.worker) {
-        reject(new Error('Failed to create OCR worker'));
-        return;
+        // Setup message handler
+        return new Promise<void>((resolve, reject) => {
+          if (!this.worker) {
+            reject(new Error('Failed to create OCR worker'));
+            return;
+          }
+
+          // Set timeout for initialization
+          const timeout = setTimeout(() => {
+            reject(new Error('OCR worker initialization timeout'));
+          }, environment.scanner.workerTimeout);
+
+          this.worker.onmessage = ({ data }) => {
+            switch (data.type) {
+              case 'ready':
+                clearTimeout(timeout);
+                this.isInitialized = true;
+                this.progressSubject.next({
+                  progress: 0,
+                  status: 'initializing',
+                });
+                resolve();
+                break;
+
+              case 'error':
+                clearTimeout(timeout);
+                this.progressSubject.next({
+                  progress: 0,
+                  status: 'error',
+                });
+                reject(new Error(data.payload?.error || 'OCR initialization failed'));
+                break;
+            }
+          };
+
+          this.worker.onerror = (error) => {
+            clearTimeout(timeout);
+            reject(new Error(`OCR worker error: ${error.message || 'Unknown error'}`));
+          };
+
+          // Send init message
+          this.worker.postMessage({
+            type: 'init',
+            payload: { languages },
+          });
+        });
+      },
+      {
+        ...environment.scanner.workerRetry,
+        onRetry: (attempt, error) => {
+          console.warn(`OCR worker initialization retry ${attempt}: ${error.message}`);
+          // Terminate failed worker before retry
+          if (this.worker) {
+            this.worker.terminate();
+            this.worker = null;
+          }
+          this.isInitialized = false;
+        },
       }
-
-      this.worker.onmessage = ({ data }) => {
-        switch (data.type) {
-          case 'ready':
-            this.isInitialized = true;
-            this.progressSubject.next({
-              progress: 0,
-              status: 'initializing',
-            });
-            resolve();
-            break;
-
-          case 'error':
-            this.progressSubject.next({
-              progress: 0,
-              status: 'error',
-            });
-            reject(new Error(data.payload?.error || 'OCR initialization failed'));
-            break;
-        }
-      };
-
-      // Send init message
-      this.worker.postMessage({
-        type: 'init',
-        payload: { languages },
-      });
-    });
+    );
   }
 
   /**

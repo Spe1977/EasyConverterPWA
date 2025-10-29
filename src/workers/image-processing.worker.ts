@@ -37,23 +37,31 @@ let isInitialized = false;
  */
 async function initializeOpenCV(): Promise<void> {
   try {
-    // Lazy load opencv.js
-    const opencv = await import('opencv.js');
-    cv = opencv.default || opencv;
+    // Load opencv.js from assets using importScripts
+    // This is the correct way to load external libraries in Web Workers
+    importScripts('/assets/opencv.js');
 
     // Wait for OpenCV to be ready
-    if (cv.onRuntimeInitialized) {
-      await new Promise<void>((resolve) => {
-        cv.onRuntimeInitialized = () => {
-          isInitialized = true;
-          resolve();
-        };
-      });
-    } else {
-      isInitialized = true;
-    }
+    // OpenCV sets a global 'cv' variable after loading
+    if (typeof (self as any).cv !== 'undefined') {
+      cv = (self as any).cv;
 
-    self.postMessage({ type: 'ready' } as ImageProcessingResponse);
+      // If cv has onRuntimeInitialized, wait for it
+      if (cv.onRuntimeInitialized) {
+        await new Promise<void>((resolve) => {
+          cv.onRuntimeInitialized = () => {
+            isInitialized = true;
+            resolve();
+          };
+        });
+      } else {
+        isInitialized = true;
+      }
+
+      self.postMessage({ type: 'ready' } as ImageProcessingResponse);
+    } else {
+      throw new Error('OpenCV not loaded - cv global variable not found');
+    }
   } catch (error) {
     self.postMessage({
       type: 'error',

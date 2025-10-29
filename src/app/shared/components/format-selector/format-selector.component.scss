@@ -20,7 +20,7 @@
 
   &:hover {
     border-color: var(--ion-color-primary);
-    background-color: var(--ion-color-primary-tint);
+    background-color: rgba(56, 128, 255, 0.08);
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
@@ -107,9 +107,13 @@
 
 // Modal styles
 ion-item.selected {
-  --background: var(--ion-color-primary-tint);
-  --color: var(--ion-color-primary);
+  --background: rgba(56, 128, 255, 0.1);
+  --color: var(--ion-color-dark);
   font-weight: 600;
+
+  ion-icon {
+    color: var(--ion-color-primary);
+  }
 }
 
 .empty-state {

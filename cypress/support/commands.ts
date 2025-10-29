@@ -24,16 +24,26 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })
-//
-// declare global {
-//   namespace Cypress {
-//     interface Chainable {
-//       login(email: string, password: string): Chainable<void>
-//       drag(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       dismiss(subject: string, options?: Partial<TypeOptions>): Chainable<Element>
-//       visit(originalFn: CommandOriginalFn, url: string, options: Partial<VisitOptions>): Chainable<Element>
-//     }
-//   }
-// }
+
+// Custom command to simulate Tab key press for keyboard navigation testing
+Cypress.Commands.add('tab', { prevSubject: ['optional', 'element'] }, (subject) => {
+  if (subject) {
+    cy.wrap(subject).trigger('keydown', { key: 'Tab', code: 'Tab', keyCode: 9 });
+  } else {
+    cy.focused().trigger('keydown', { key: 'Tab', code: 'Tab', keyCode: 9 });
+  }
+});
+
+declare global {
+  namespace Cypress {
+    interface Chainable {
+      /**
+       * Custom command to simulate Tab key press for keyboard navigation testing
+       * @example cy.get('body').tab()
+       */
+      tab(): Chainable<void>;
+    }
+  }
+}
 
 export {};

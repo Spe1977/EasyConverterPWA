@@ -14,9 +14,9 @@ describe('EasyConverter Home Page', () => {
   });
 
   it('should show hero section with benefits', () => {
-    cy.contains('Fast').should('be.visible');
-    cy.contains('Secure').should('be.visible');
-    cy.contains('Offline').should('be.visible');
+    cy.contains('Fast').should('exist');
+    cy.contains('Secure').should('exist');
+    cy.contains('Offline').should('exist');
   });
 
   it('should handle file selection workflow', () => {

@@ -34,12 +34,15 @@ export class PdfService {
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
+    // Sanitizza il testo per rimuovere caratteri non supportati da WinAnsi
+    const sanitizedText = this.sanitizeTextForPdf(text);
+
     // Calcola area di testo disponibile
     const maxWidth = pageWidth - margin * 2;
     const maxHeight = pageHeight - margin * 2;
 
     // Dividi il testo in righe
-    const lines = this.wrapText(text, font, fontSize, maxWidth);
+    const lines = this.wrapText(sanitizedText, font, fontSize, maxWidth);
 
     // Calcola quante righe per pagina
     const lineHeight = fontSize * 1.2;
@@ -317,27 +320,105 @@ export class PdfService {
    * Divide il testo in righe che si adattano alla larghezza specificata
    */
   private wrapText(text: string, font: any, fontSize: number, maxWidth: number): string[] {
-    const words = text.split(' ');
     const lines: string[] = [];
-    let currentLine = '';
 
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const width = font.widthOfTextAtSize(testLine, fontSize);
+    // Prima dividi per newline per preservare le interruzioni di riga intenzionali
+    const paragraphs = text.split(/\r?\n/);
 
-      if (width > maxWidth && currentLine) {
+    for (const paragraph of paragraphs) {
+      // Se il paragrafo è vuoto, aggiungi una riga vuota
+      if (!paragraph.trim()) {
+        lines.push('');
+        continue;
+      }
+
+      // Applica word wrapping al paragrafo
+      const words = paragraph.split(' ');
+      let currentLine = '';
+
+      for (const word of words) {
+        const testLine = currentLine ? `${currentLine} ${word}` : word;
+        const width = font.widthOfTextAtSize(testLine, fontSize);
+
+        if (width > maxWidth && currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          currentLine = testLine;
+        }
+      }
+
+      if (currentLine) {
         lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
       }
     }
 
-    if (currentLine) {
-      lines.push(currentLine);
+    return lines;
+  }
+
+  /**
+   * Sanitizza il testo per rimuovere caratteri non supportati dal charset WinAnsi
+   * WinAnsi supporta solo caratteri ASCII base e alcuni caratteri dell'Europa occidentale
+   */
+  private sanitizeTextForPdf(text: string): string {
+    // Mappa di sostituzioni per caratteri Unicode comuni
+    const replacements: { [key: string]: string } = {
+      // Checkmarks e simboli
+      '\u2713': '[v]', // ✓
+      '\u2714': '[v]', // ✔
+      '\u2717': '[x]', // ✗
+      '\u2718': '[x]', // ✘
+      '\u2610': '[ ]', // ☐
+      '\u2611': '[v]', // ☑
+      '\u2612': '[x]', // ☒
+      // Quote tipografiche
+      '\u201C': '"', // "
+      '\u201D': '"', // "
+      '\u2018': "'", // '
+      '\u2019': "'", // '
+      '\u00AB': '"', // «
+      '\u00BB': '"', // »
+      // Trattini e spazi speciali
+      '\u2014': '-', // em dash —
+      '\u2013': '-', // en dash –
+      '\u2212': '-', // minus −
+      '\u00A0': ' ', // non-breaking space
+      '\u2003': ' ', // em space
+      '\u2009': ' ', // thin space
+      // Punti elenco
+      '\u2022': '*', // •
+      '\u25E6': '-', // ◦
+      '\u25AA': '*', // ▪
+      '\u25AB': '-', // ▫
+      // Frecce
+      '\u2192': '->', // →
+      '\u2190': '<-', // ←
+      '\u2191': '^', // ↑
+      '\u2193': 'v', // ↓
+      '\u21D2': '=>', // ⇒
+      '\u21D0': '<=', // ⇐
+      // Altri simboli comuni
+      '\u2122': '(TM)', // ™
+      '\u00A9': '(C)', // ©
+      '\u00AE': '(R)', // ®
+      '\u00B0': 'deg', // °
+      '\u00B1': '+/-', // ±
+      '\u00D7': 'x', // ×
+      '\u00F7': '/', // ÷
+      '\u2026': '...', // …
+    };
+
+    // Applica le sostituzioni
+    let sanitized = text;
+    for (const [unicode, replacement] of Object.entries(replacements)) {
+      sanitized = sanitized.split(unicode).join(replacement);
     }
 
-    return lines;
+    // Rimuovi tutti i caratteri che non sono nel range WinAnsi (0x20-0xFF)
+    // Mantieni caratteri ASCII stampabili e caratteri Latin-1
+    sanitized = sanitized.replace(/[^\x20-\xFF]/g, '');
+
+    return sanitized;
   }
 
   /**

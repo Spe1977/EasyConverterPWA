@@ -1,0 +1,382 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
+  <file source-language="en" datatype="plaintext" original="ng2.template">
+    <body>
+      <!-- App Title -->
+      <trans-unit id="appTitle" datatype="html">
+        <source>EasyConverter</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <!-- Home Page -->
+      <trans-unit id="heroTitle" datatype="html">
+        <source>Convert Any File</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="heroSubtitle" datatype="html">
+        <source>Fast, secure, and 100% offline conversion</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scanDocumentsTitle" datatype="html">
+        <source>Scan Documents</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scanDocumentsDescription" datatype="html">
+        <source>Use your camera to scan and convert documents to PDF</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="selectFormatsTitle" datatype="html">
+        <source>Select Formats</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="convertNowButton" datatype="html">
+        <source>Convert Now</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="convertShareButton" datatype="html">
+        <source>Convert &amp; Share</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="selectedFileLabel" datatype="html">
+        <source>Selected File</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureFastTitle" datatype="html">
+        <source>Fast</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureFastDescription" datatype="html">
+        <source>Lightning-fast conversions powered by your device</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureSecureTitle" datatype="html">
+        <source>Secure</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureSecureDescription" datatype="html">
+        <source>Your files never leave your device</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureOfflineTitle" datatype="html">
+        <source>Offline</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureOfflineDescription" datatype="html">
+        <source>Works perfectly without internet</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="convertingFileMessage" datatype="html">
+        <source>Converting file...</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.ts</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scannerButtonAriaLabel" datatype="html">
+        <source>Open scanner</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/home/home.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <!-- Scanner Page -->
+      <trans-unit id="scannerPageTitle" datatype="html">
+        <source>Document Scanner</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scannerHeroTitle" datatype="html">
+        <source>Scan Documents</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scannerHeroDescription" datatype="html">
+        <source>Capture documents with your camera, automatically detect edges and apply OCR</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="takePhotoButton" datatype="html">
+        <source>Take Photo</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="chooseFromGalleryButton" datatype="html">
+        <source>Choose from Gallery</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featuresListHeader" datatype="html">
+        <source>Features</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureEdgeDetectionTitle" datatype="html">
+        <source>Automatic Edge Detection</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureEdgeDetectionDescription" datatype="html">
+        <source>Automatically find document borders</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featurePerspectiveTitle" datatype="html">
+        <source>Perspective Correction</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featurePerspectiveDescription" datatype="html">
+        <source>Straighten tilted or angled documents</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureEnhancementTitle" datatype="html">
+        <source>Image Enhancement</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureEnhancementDescription" datatype="html">
+        <source>Automatically optimize contrast and sharpness</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureOcrTitle" datatype="html">
+        <source>Multi-Language OCR</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="featureOcrDescription" datatype="html">
+        <source>Recognize text in 8 different languages</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scanPreviewTitle" datatype="html">
+        <source>Scan Preview</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="ocrSectionTitle" datatype="html">
+        <source>Text Recognition (OCR)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="selectLanguagePlaceholder" datatype="html">
+        <source>Select language</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="runOcrButton" datatype="html">
+        <source>Run OCR</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="recognizedTextLabel" datatype="html">
+        <source>Recognized Text</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="saveImageButton" datatype="html">
+        <source>Save Image (PNG)</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="shareImageButton" datatype="html">
+        <source>Share Image</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="saveAsPdfButton" datatype="html">
+        <source>Save as PDF</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="saveAsTxtButton" datatype="html">
+        <source>Save as TXT</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="scannedDocumentAlt" datatype="html">
+        <source>Scanned document</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="resetScanAriaLabel" datatype="html">
+        <source>Reset scan</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/features/scanner/scanner.page.html</context>
+        </context-group>
+      </trans-unit>
+
+      <!-- File Picker Component -->
+      <trans-unit id="filePickerDropText" datatype="html">
+        <source>Drop file here or click to select</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/file-picker/file-picker.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="filePickerAcceptedLabel" datatype="html">
+        <source>Accepted: <x id="INTERPOLATION" equiv-text="{{ accept() }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/file-picker/file-picker.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="filePickerMaxSizeLabel" datatype="html">
+        <source>Max size: <x id="INTERPOLATION" equiv-text="{{ formatMaxSize() }}"/></source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/file-picker/file-picker.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <!-- Format Selector Component -->
+      <trans-unit id="formatSelectorFromLabel" datatype="html">
+        <source>From</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorToLabel" datatype="html">
+        <source>To</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorSelectSource" datatype="html">
+        <source>Select source format</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorSelectTarget" datatype="html">
+        <source>Select target format</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorSourceModalTitle" datatype="html">
+        <source>Select Source Format</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorTargetModalTitle" datatype="html">
+        <source>Select Target Format</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorCloseButton" datatype="html">
+        <source>Close</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+
+      <trans-unit id="formatSelectorEmptyState" datatype="html">
+        <source>Please select a source format first</source>
+        <context-group purpose="location">
+          <context context-type="sourcefile">src/app/shared/components/format-selector/format-selector.component.html</context>
+        </context-group>
+      </trans-unit>
+    </body>
+  </file>
+</xliff>

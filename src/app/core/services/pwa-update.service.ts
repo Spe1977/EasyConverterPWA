@@ -1,6 +1,6 @@
-import { Injectable, ApplicationRef, inject } from '@angular/core';
+import { Injectable, ApplicationRef, inject, OnDestroy } from '@angular/core';
 import { SwUpdate, VersionReadyEvent } from '@angular/service-worker';
-import { filter, first, interval } from 'rxjs';
+import { filter, first, interval, Subscription } from 'rxjs';
 
 /**
  * Service to manage PWA updates and notify users
@@ -9,9 +9,10 @@ import { filter, first, interval } from 'rxjs';
 @Injectable({
   providedIn: 'root',
 })
-export class PwaUpdateService {
+export class PwaUpdateService implements OnDestroy {
   private readonly swUpdate = inject(SwUpdate);
   private readonly appRef = inject(ApplicationRef);
+  private updateCheckSubscription?: Subscription;
 
   /**
    * Initialize update checking
@@ -29,8 +30,9 @@ export class PwaUpdateService {
     // Check for updates every 6 hours
     const everyHours$ = interval(6 * 60 * 60 * 1000);
 
-    appIsStable$.subscribe(() => {
-      everyHours$.subscribe(async () => {
+    // Store subscription for cleanup
+    this.updateCheckSubscription = appIsStable$.subscribe(() => {
+      const intervalSub = everyHours$.subscribe(async () => {
         try {
           const updateFound = await this.swUpdate.checkForUpdate();
           console.log(
@@ -40,6 +42,11 @@ export class PwaUpdateService {
           console.error('Failed to check for updates:', err);
         }
       });
+
+      // Add nested subscription to parent for proper cleanup
+      if (this.updateCheckSubscription) {
+        this.updateCheckSubscription.add(intervalSub);
+      }
     });
   }
 
@@ -96,5 +103,12 @@ export class PwaUpdateService {
       console.error('Failed to check for updates:', err);
       return false;
     }
+  }
+
+  /**
+   * Cleanup subscriptions when service is destroyed
+   */
+  ngOnDestroy(): void {
+    this.updateCheckSubscription?.unsubscribe();
   }
 }

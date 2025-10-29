@@ -2,10 +2,10 @@
   <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="swap-horizontal-outline" class="title-icon"></ion-icon>
-      EasyConverter
+      <span i18n="@@appTitle">EasyConverter</span>
     </ion-title>
     <ion-buttons slot="end">
-      <ion-button routerLink="/scanner">
+      <ion-button routerLink="/scanner" i18n-aria-label="@@scannerButtonAriaLabel" aria-label="Open scanner">
         <ion-icon slot="icon-only" name="scan"></ion-icon>
       </ion-button>
     </ion-buttons>
@@ -15,15 +15,15 @@
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large">EasyConverter</ion-title>
+      <ion-title size="large" i18n="@@appTitle">EasyConverter</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <div class="converter-container">
     <!-- Hero Section -->
     <div class="hero-section">
-      <h1>Convert Any File</h1>
-      <p>Fast, secure, and 100% offline conversion</p>
+      <h1 i18n="@@heroTitle">Convert Any File</h1>
+      <p i18n="@@heroSubtitle">Fast, secure, and 100% offline conversion</p>
 
       <!-- Scanner Feature Card -->
       <ion-card class="scanner-promo-card" button="true" routerLink="/scanner">
@@ -31,8 +31,8 @@
           <div class="promo-content">
             <ion-icon name="scan" color="primary"></ion-icon>
             <div class="promo-text">
-              <h3>Scan Documents</h3>
-              <p>Use your camera to scan and convert documents to PDF</p>
+              <h3 i18n="@@scanDocumentsTitle">Scan Documents</h3>
+              <p i18n="@@scanDocumentsDescription">Use your camera to scan and convert documents to PDF</p>
             </div>
             <ion-icon name="chevron-forward" color="medium"></ion-icon>
           </div>
@@ -47,6 +47,13 @@
         (fileSelected)="onFileSelected($event)"
         (fileError)="onFileError($event)"
       ></app-file-picker>
+
+      <!-- Error message for E2E testing -->
+      @if (errorMessage()) {
+        <div class="error-message" data-cy="error-message" role="alert">
+          {{ errorMessage() }}
+        </div>
+      }
     </div>
 
     <!-- Format Selector -->
@@ -56,7 +63,7 @@
           <ion-card-header>
             <ion-card-title>
               <ion-icon name="settings-outline"></ion-icon>
-              Select Formats
+              <span i18n="@@selectFormatsTitle">Select Formats</span>
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
@@ -78,7 +85,7 @@
       <div class="section">
         <ion-button expand="block" size="large" [disabled]="!canConvert()" (click)="convert()" class="convert-button">
           <ion-icon name="shuffle-outline" slot="start"></ion-icon>
-          Convert Now
+          <span i18n="@@convertNowButton">Convert Now</span>
         </ion-button>
 
         <ion-button
@@ -89,7 +96,7 @@
           class="share-button"
         >
           <ion-icon name="share-social-outline" slot="start"></ion-icon>
-          Convert & Share
+          <span i18n="@@convertShareButton">Convert & Share</span>
         </ion-button>
       </div>
     }
@@ -99,7 +106,7 @@
       <div class="section">
         <ion-card class="file-info-card">
           <ion-card-header>
-            <ion-card-subtitle>Selected File</ion-card-subtitle>
+            <ion-card-subtitle i18n="@@selectedFileLabel">Selected File</ion-card-subtitle>
           </ion-card-header>
           <ion-card-content>
             <ion-list lines="none">
@@ -124,22 +131,22 @@
             <ion-col size="12" size-md="4">
               <div class="feature-card">
                 <ion-icon name="flash-outline" color="primary"></ion-icon>
-                <h3>Fast</h3>
-                <p>Lightning-fast conversions powered by your device</p>
+                <h3 i18n="@@featureFastTitle">Fast</h3>
+                <p i18n="@@featureFastDescription">Lightning-fast conversions powered by your device</p>
               </div>
             </ion-col>
             <ion-col size="12" size-md="4">
               <div class="feature-card">
                 <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
-                <h3>Secure</h3>
-                <p>Your files never leave your device</p>
+                <h3 i18n="@@featureSecureTitle">Secure</h3>
+                <p i18n="@@featureSecureDescription">Your files never leave your device</p>
               </div>
             </ion-col>
             <ion-col size="12" size-md="4">
               <div class="feature-card">
                 <ion-icon name="cloud-offline-outline" color="tertiary"></ion-icon>
-                <h3>Offline</h3>
-                <p>Works perfectly without internet</p>
+                <h3 i18n="@@featureOfflineTitle">Offline</h3>
+                <p i18n="@@featureOfflineDescription">Works perfectly without internet</p>
               </div>
             </ion-col>
           </ion-row>
@@ -152,7 +159,7 @@
   <app-progress-indicator
     [isActive]="isConverting()"
     [progress]="conversionProgress()"
-    [message]="'Converting file...'"
+    [message]="convertingFileMessage"
     [showProgress]="true"
   ></app-progress-indicator>
 </ion-content>

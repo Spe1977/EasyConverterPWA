@@ -2,7 +2,11 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>Ionic App</title>
+    <title>EasyConverter - Document Converter & Scanner</title>
+    <meta
+      name="description"
+      content="Offline document converter and scanner. Convert between 10+ formats (PDF, TXT, MD, HTML, CSV, JSON, XLSX) and scan documents with OCR."
+    />
 
     <base href="/" />
 
@@ -13,14 +17,19 @@
     />
     <meta name="format-detection" content="telephone=no" />
     <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="theme-color" content="#3880ff" />
 
     <link rel="icon" type="image/png" href="assets/icon/favicon.png" />
 
-    <!-- add to homescreen for ios -->
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.webmanifest" />
+
+    <!-- iOS meta tags -->
     <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
-    <link rel="manifest" href="manifest.webmanifest" />
-    <link rel="manifest" href="manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="EasyConverter" />
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.png" />
   </head>
 
   <body>

@@ -35,3 +35,80 @@
 /* @import "@ionic/angular/css/palettes/dark.always.css"; */
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import '@ionic/angular/css/palettes/dark.system.css';
+
+/**
+ * Custom Mobile Optimizations
+ * Improve tap/press states for better readability
+ */
+
+// Improve button press states
+ion-button {
+  // Better contrast when pressed
+  &.ion-activated,
+  &:active {
+    --background: var(--ion-color-primary-shade);
+    --color: white;
+    opacity: 0.9;
+  }
+
+  // Outline buttons
+  &[fill='outline'] {
+    &.ion-activated,
+    &:active {
+      --background: var(--ion-color-primary-tint);
+      --color: var(--ion-color-primary);
+      opacity: 1;
+    }
+  }
+}
+
+// Improve card press states
+ion-card {
+  &[button='true'],
+  &.ion-activatable {
+    &.ion-activated,
+    &:active {
+      // Lighter overlay instead of dark
+      --background: rgba(56, 128, 255, 0.05);
+      opacity: 0.95;
+      transform: scale(0.98);
+
+      // Ensure text remains readable
+      ion-card-title,
+      ion-card-subtitle,
+      h1,
+      h2,
+      h3,
+      h4,
+      p {
+        color: var(--ion-color-dark) !important;
+      }
+
+      ion-icon {
+        color: var(--ion-color-primary) !important;
+      }
+    }
+  }
+}
+
+// Better tap feedback for clickable elements
+.file-picker-container,
+.scanner-promo-card,
+.feature-card {
+  -webkit-tap-highlight-color: rgba(56, 128, 255, 0.2);
+  tap-highlight-color: rgba(56, 128, 255, 0.2);
+
+  &:active {
+    opacity: 0.9;
+    transform: scale(0.98);
+  }
+}
+
+// Ensure ion-item press states are readable
+ion-item {
+  &.ion-activated,
+  &:active {
+    --background: var(--ion-color-light-tint);
+    --color: var(--ion-color-dark);
+  }
+}

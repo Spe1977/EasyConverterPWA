@@ -6,14 +6,14 @@
         <div class="format-content">
           <ion-icon [name]="getFormatInfo(selectedSource())?.icon || 'document-outline'"></ion-icon>
           <div class="format-info">
-            <span class="format-label">From</span>
+            <span class="format-label" i18n="@@formatSelectorFromLabel">From</span>
             <span class="format-name">{{ getFormatInfo(selectedSource())?.label }}</span>
           </div>
         </div>
       } @else {
         <div class="format-content empty">
           <ion-icon name="add-circle-outline"></ion-icon>
-          <span>Select source format</span>
+          <span i18n="@@formatSelectorSelectSource">Select source format</span>
         </div>
       }
     </div>
@@ -33,14 +33,14 @@
         <div class="format-content">
           <ion-icon [name]="getFormatInfo(selectedTarget())?.icon || 'document-outline'"></ion-icon>
           <div class="format-info">
-            <span class="format-label">To</span>
+            <span class="format-label" i18n="@@formatSelectorToLabel">To</span>
             <span class="format-name">{{ getFormatInfo(selectedTarget())?.label }}</span>
           </div>
         </div>
       } @else {
         <div class="format-content empty">
           <ion-icon name="add-circle-outline"></ion-icon>
-          <span>Select target format</span>
+          <span i18n="@@formatSelectorSelectTarget">Select target format</span>
         </div>
       }
     </div>
@@ -52,9 +52,11 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Select Source Format</ion-title>
+        <ion-title i18n="@@formatSelectorSourceModalTitle">Select Source Format</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="showSourceModal.set(false)">Close</ion-button>
+          <ion-button (click)="showSourceModal.set(false)">
+            <span i18n="@@formatSelectorCloseButton">Close</span>
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -91,9 +93,11 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title>Select Target Format</ion-title>
+        <ion-title i18n="@@formatSelectorTargetModalTitle">Select Target Format</ion-title>
         <ion-buttons slot="end">
-          <ion-button (click)="showTargetModal.set(false)">Close</ion-button>
+          <ion-button (click)="showTargetModal.set(false)">
+            <span i18n="@@formatSelectorCloseButton">Close</span>
+          </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
@@ -101,7 +105,7 @@
       @if (targetFormats().length === 0) {
         <div class="empty-state">
           <ion-icon name="alert-circle-outline"></ion-icon>
-          <p>Please select a source format first</p>
+          <p i18n="@@formatSelectorEmptyState">Please select a source format first</p>
         </div>
       } @else {
         @for (category of objectKeys(groupedTargetFormats()); track category) {

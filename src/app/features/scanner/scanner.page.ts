@@ -1,14 +1,16 @@
-import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ToastController, LoadingController, AlertController } from '@ionic/angular';
+import { IonicModule, LoadingController } from '@ionic/angular';
 import { ScannerService } from '@core/services/scanner.service';
 import { OcrService } from '@core/services/ocr.service';
 import { FileSystemService } from '@core/services/file-system.service';
 import { ConverterService } from '@core/services/converter.service';
+import { ErrorService } from '@core/services/error.service';
 import { ConversionFormat } from '@core/models/conversion-format';
 import { OcrLanguage } from '@core/models/scan-options';
-import { Subscription } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { environment } from '@env/environment';
 
 interface ScanStep {
   id: 'capture' | 'detect' | 'correct' | 'enhance' | 'ocr' | 'preview';
@@ -28,9 +30,9 @@ export class ScannerPage implements OnInit, OnDestroy {
   private readonly ocrService = inject(OcrService);
   private readonly fileSystemService = inject(FileSystemService);
   private readonly converterService = inject(ConverterService);
-  private readonly toastController = inject(ToastController);
+  private readonly errorService = inject(ErrorService);
   private readonly loadingController = inject(LoadingController);
-  private readonly alertController = inject(AlertController);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Signals for reactive state
   currentStep = signal<ScanStep['id']>('capture');
@@ -52,36 +54,32 @@ export class ScannerPage implements OnInit, OnDestroy {
     { code: 'chi_sim', name: '中文简体' },
   ];
 
-  // Scan workflow steps
-  steps: ScanStep[] = [
+  // Scan workflow steps (signal for reactive state management)
+  steps = signal<ScanStep[]>([
     { id: 'capture', label: 'Cattura', completed: false },
     { id: 'detect', label: 'Rilevamento', completed: false },
     { id: 'correct', label: 'Correzione', completed: false },
     { id: 'enhance', label: 'Miglioramento', completed: false },
     { id: 'ocr', label: 'OCR', completed: false },
     { id: 'preview', label: 'Anteprima', completed: false },
-  ];
-
-  private subscriptions = new Subscription();
+  ]);
 
   ngOnInit() {
     this.checkCameraAvailability();
   }
 
   ngOnDestroy() {
-    this.subscriptions.unsubscribe();
+    // Terminate workers to free resources and prevent memory leaks
+    this.scannerService.terminate();
+    this.ocrService.terminate();
   }
 
   private async checkCameraAvailability() {
     const available = await this.scannerService.isCameraAvailable();
     if (!available) {
-      const toast = await this.toastController.create({
-        message: 'Fotocamera non disponibile. Usa il pulsante per caricare da galleria.',
-        duration: 3000,
-        color: 'warning',
-        position: 'top',
-      });
-      await toast.present();
+      await this.errorService.showWarning(
+        'Fotocamera non disponibile. Usa il pulsante per caricare da galleria.'
+      );
     }
   }
 
@@ -89,103 +87,87 @@ export class ScannerPage implements OnInit, OnDestroy {
    * Start document scan from camera
    */
   async scanDocument() {
-    this.isProcessing.set(true);
-    this.resetSteps();
-
-    const loading = await this.loadingController.create({
-      message: 'Inizializzazione fotocamera...',
-    });
-    await loading.present();
-
-    try {
-      // Subscribe to progress updates
-      const progressSub = this.scannerService.progress$.subscribe((progress) => {
-        const message = progress.message || 'Elaborazione in corso...';
-        this.progressMessage.set(message);
-        loading.message = message;
-
-        // Update steps based on progress
-        if (message.includes('Cattura')) this.markStepCompleted('capture');
-        if (message.includes('Rilevamento')) this.markStepCompleted('detect');
-        if (message.includes('Correzione')) this.markStepCompleted('correct');
-        if (message.includes('Enhancement')) this.markStepCompleted('enhance');
-      });
-      this.subscriptions.add(progressSub);
-
-      // Scan document with edge detection and enhancement
-      const result = await this.scannerService.scanDocument({
-        quality: 100,
-        resultType: 'base64',
-      });
-
-      if (result.success && result.data) {
-        this.scannedImage.set(`data:image/jpeg;base64,${result.data}`);
-        this.currentStep.set('preview');
-        this.markStepCompleted('preview');
-
-        await loading.dismiss();
-        await this.showToast('Documento scansionato con successo!', 'success');
-      } else {
-        throw new Error(result.error || 'Scansione fallita');
-      }
-    } catch (error: any) {
-      await loading.dismiss();
-      console.error('Scan error:', error);
-      await this.showToast(`Errore durante la scansione: ${error.message}`, 'danger');
-      this.resetScan();
-    } finally {
-      this.isProcessing.set(false);
-    }
+    await this.performScan(
+      'camera',
+      'Inizializzazione fotocamera...',
+      'Documento scansionato con successo!'
+    );
   }
 
   /**
    * Pick image from gallery
    */
   async pickFromGallery() {
+    await this.performScan('photos', 'Caricamento immagine...', 'Immagine caricata e processata!');
+  }
+
+  /**
+   * Unified method to perform document scanning from camera or gallery
+   * Eliminates code duplication and centralizes scan logic
+   */
+  private async performScan(
+    source: 'camera' | 'photos',
+    loadingMessage: string,
+    successMessage: string
+  ) {
     this.isProcessing.set(true);
     this.resetSteps();
 
     const loading = await this.loadingController.create({
-      message: 'Caricamento immagine...',
+      message: loadingMessage,
     });
     await loading.present();
 
     try {
       // Subscribe to progress updates
-      const progressSub = this.scannerService.progress$.subscribe((progress) => {
-        const message = progress.message || 'Elaborazione in corso...';
-        this.progressMessage.set(message);
-        loading.message = message;
-      });
-      this.subscriptions.add(progressSub);
+      this.scannerService.progress$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((progress) => {
+          const message = progress.message || 'Elaborazione in corso...';
+          this.progressMessage.set(message);
+          loading.message = message;
 
-      // Pick and process image from gallery
+          // Update steps based on progress (only for camera capture)
+          if (source === 'camera') {
+            if (message.includes('Cattura')) this.markStepCompleted('capture');
+            if (message.includes('Rilevamento')) this.markStepCompleted('detect');
+            if (message.includes('Correzione')) this.markStepCompleted('correct');
+            if (message.includes('Enhancement')) this.markStepCompleted('enhance');
+          }
+        });
+
+      // Perform scan/load with the scanner service
       const result = await this.scannerService.scanDocument({
-        source: 'photos',
-        quality: 100,
+        source: source === 'photos' ? 'photos' : undefined,
+        quality: environment.scanner.defaultQuality,
         resultType: 'base64',
       });
 
       if (result.success && result.data) {
         this.scannedImage.set(`data:image/jpeg;base64,${result.data}`);
         this.currentStep.set('preview');
-        this.markStepCompleted('capture');
-        this.markStepCompleted('detect');
-        this.markStepCompleted('correct');
-        this.markStepCompleted('enhance');
+
+        // Mark all steps completed
+        if (source === 'photos') {
+          // Gallery: mark all steps as completed immediately
+          this.markStepCompleted('capture');
+          this.markStepCompleted('detect');
+          this.markStepCompleted('correct');
+          this.markStepCompleted('enhance');
+        }
         this.markStepCompleted('preview');
 
-        await loading.dismiss();
-        await this.showToast('Immagine caricata e processata!', 'success');
+        await this.errorService.showSuccess(successMessage);
       } else {
-        throw new Error(result.error || 'Caricamento fallito');
+        throw new Error(result.error || 'Operazione fallita');
       }
     } catch (error: any) {
-      await loading.dismiss();
-      console.error('Gallery pick error:', error);
-      await this.showToast(`Errore durante il caricamento: ${error.message}`, 'danger');
+      const errorMessage =
+        source === 'camera' ? 'Errore durante la scansione' : 'Errore durante il caricamento';
+      await this.errorService.handleError(error, 'Scanner', errorMessage);
       this.resetScan();
     } finally {
+      await loading.dismiss();
       this.isProcessing.set(false);
     }
   }
@@ -208,11 +190,12 @@ export class ScannerPage implements OnInit, OnDestroy {
       const blob = this.fileSystemService.base64ToBlob(base64Data, 'image/jpeg');
 
       // Subscribe to OCR progress
-      const progressSub = this.ocrService.progress$.subscribe((ocrProgress) => {
-        const percent = Math.round(ocrProgress.progress * 100);
-        loading.message = `Riconoscimento testo... ${percent}%`;
-      });
-      this.subscriptions.add(progressSub);
+      this.ocrService.progress$
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe((ocrProgress) => {
+          const percent = Math.round(ocrProgress.progress * 100);
+          loading.message = `Riconoscimento testo... ${percent}%`;
+        });
 
       // Run OCR
       const result = await this.ocrService.recognizeText(blob, {
@@ -223,19 +206,16 @@ export class ScannerPage implements OnInit, OnDestroy {
         this.ocrText.set(result.text);
         this.markStepCompleted('ocr');
 
-        await loading.dismiss();
-        await this.showSuccessAlert(
-          'OCR completato!',
-          `Testo riconosciuto con confidenza: ${Math.round((result.confidence || 0) * 100)}%`
+        await this.errorService.showSuccess(
+          `OCR completato! Confidenza: ${Math.round((result.confidence || 0) * 100)}%`
         );
       } else {
         throw new Error(result.error || 'OCR fallito');
       }
     } catch (error: any) {
-      await loading.dismiss();
-      console.error('OCR error:', error);
-      await this.showToast(`Errore OCR: ${error.message}`, 'danger');
+      await this.errorService.handleError(error, 'OCR', 'Errore OCR');
     } finally {
+      await loading.dismiss();
       this.isProcessing.set(false);
     }
   }
@@ -252,10 +232,9 @@ export class ScannerPage implements OnInit, OnDestroy {
       const fileName = `scan_${Date.now()}.png`;
 
       await this.fileSystemService.saveFile(fileName, blob, 'image/png');
-      await this.showToast('Immagine salvata con successo!', 'success');
+      await this.errorService.showSuccess('Immagine salvata con successo!');
     } catch (error: any) {
-      console.error('Download error:', error);
-      await this.showToast(`Errore durante il salvataggio: ${error.message}`, 'danger');
+      await this.errorService.handleError(error, 'Download Image', 'Errore durante il salvataggio');
     }
   }
 
@@ -286,16 +265,14 @@ export class ScannerPage implements OnInit, OnDestroy {
         const fileName = `scan_ocr_${Date.now()}.pdf`;
         await this.fileSystemService.saveFile(fileName, result.blob, 'application/pdf');
 
-        await loading.dismiss();
-        await this.showToast('PDF generato e salvato!', 'success');
+        await this.errorService.showSuccess('PDF generato e salvato!');
       } else {
         throw new Error(result.error || 'Conversione PDF fallita');
       }
     } catch (error: any) {
-      await loading.dismiss();
-      console.error('PDF generation error:', error);
-      await this.showToast(`Errore generazione PDF: ${error.message}`, 'danger');
+      await this.errorService.handleError(error, 'PDF Generation', 'Errore generazione PDF');
     } finally {
+      await loading.dismiss();
       this.isProcessing.set(false);
     }
   }
@@ -311,10 +288,9 @@ export class ScannerPage implements OnInit, OnDestroy {
       const fileName = `scan_ocr_${Date.now()}.txt`;
 
       await this.fileSystemService.saveFile(fileName, blob, 'text/plain');
-      await this.showToast('Testo salvato con successo!', 'success');
+      await this.errorService.showSuccess('Testo salvato con successo!');
     } catch (error: any) {
-      console.error('Download text error:', error);
-      await this.showToast(`Errore durante il salvataggio: ${error.message}`, 'danger');
+      await this.errorService.handleError(error, 'Download Text', 'Errore durante il salvataggio');
     }
   }
 
@@ -331,8 +307,7 @@ export class ScannerPage implements OnInit, OnDestroy {
 
       await this.fileSystemService.shareFile(fileName, blob, 'image/png');
     } catch (error: any) {
-      console.error('Share error:', error);
-      await this.showToast(`Errore durante la condivisione: ${error.message}`, 'danger');
+      await this.errorService.handleError(error, 'Share Image', 'Errore durante la condivisione');
     }
   }
 
@@ -348,30 +323,14 @@ export class ScannerPage implements OnInit, OnDestroy {
   }
 
   private resetSteps() {
-    this.steps.forEach((step) => (step.completed = false));
+    this.steps.update((currentSteps) =>
+      currentSteps.map((step) => ({ ...step, completed: false }))
+    );
   }
 
   private markStepCompleted(stepId: ScanStep['id']) {
-    const step = this.steps.find((s) => s.id === stepId);
-    if (step) step.completed = true;
-  }
-
-  private async showToast(message: string, color: 'success' | 'danger' | 'warning') {
-    const toast = await this.toastController.create({
-      message,
-      duration: 3000,
-      color,
-      position: 'bottom',
-    });
-    await toast.present();
-  }
-
-  private async showSuccessAlert(header: string, message: string) {
-    const alert = await this.alertController.create({
-      header,
-      message,
-      buttons: ['OK'],
-    });
-    await alert.present();
+    this.steps.update((currentSteps) =>
+      currentSteps.map((step) => (step.id === stepId ? { ...step, completed: true } : step))
+    );
   }
 }

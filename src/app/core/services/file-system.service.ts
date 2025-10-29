@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Capacitor } from '@capacitor/core';
@@ -10,7 +10,9 @@ import { Capacitor } from '@capacitor/core';
 @Injectable({
   providedIn: 'root',
 })
-export class FileSystemService {
+export class FileSystemService implements OnDestroy {
+  private cleanupTimeouts = new Set<number>();
+
   /**
    * Verifica se l'app è in esecuzione su piattaforma native
    */
@@ -152,16 +154,22 @@ export class FileSystemService {
     });
 
     // Cleanup: rimuovi file temporaneo dopo condivisione
-    setTimeout(async () => {
+    const timeoutId = window.setTimeout(async () => {
       try {
         await Filesystem.deleteFile({
           path: fileName,
           directory: Directory.Cache,
         });
+        // Remove from tracked timeouts after execution
+        this.cleanupTimeouts.delete(timeoutId);
       } catch (error) {
         console.warn('Failed to cleanup temp file:', error);
+        this.cleanupTimeouts.delete(timeoutId);
       }
     }, 5000);
+
+    // Track timeout for cleanup if service is destroyed
+    this.cleanupTimeouts.add(timeoutId);
   }
 
   /**
@@ -203,7 +211,7 @@ export class FileSystemService {
       byteArrays.push(byteArray);
     }
 
-    return new Blob(byteArrays, { type: mimeType });
+    return new Blob(byteArrays as BlobPart[], { type: mimeType });
   }
 
   /**
@@ -221,13 +229,13 @@ export class FileSystemService {
    * @returns Stringa formattata (es: "1.5 MB")
    */
   formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return '0 B';
 
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = ['B', 'KB', 'MB', 'GB'];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
 
-    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+    return (bytes / Math.pow(k, i)).toFixed(1) + ' ' + sizes[i];
   }
 
   /**
@@ -238,5 +246,17 @@ export class FileSystemService {
    */
   validateFileSize(file: File, maxSizeBytes: number): boolean {
     return file.size <= maxSizeBytes;
+  }
+
+  /**
+   * Cleanup when service is destroyed
+   * Clear all pending cleanup timeouts
+   */
+  ngOnDestroy(): void {
+    // Clear all tracked timeouts
+    this.cleanupTimeouts.forEach((timeoutId) => {
+      clearTimeout(timeoutId);
+    });
+    this.cleanupTimeouts.clear();
   }
 }

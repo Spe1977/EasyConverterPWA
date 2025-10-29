@@ -1,4 +1,4 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, OnDestroy } from '@angular/core';
 import { ConversionFormat } from '@core/models/conversion-format';
 import { ConverterService } from '@core/services/converter.service';
 import { FileSystemService } from '@core/services/file-system.service';
@@ -11,7 +11,7 @@ import { environment } from '@env/environment';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-export class HomePage {
+export class HomePage implements OnDestroy {
   private converterService = inject(ConverterService);
   private fileSystemService = inject(FileSystemService);
   private toastController = inject(ToastController);
@@ -24,9 +24,16 @@ export class HomePage {
   isConverting = signal(false);
   conversionProgress = signal(0);
   availableTargets = signal<ConversionFormat[]>([]);
+  errorMessage = signal<string | null>(null);
 
   // Environment
   maxFileSize = environment.conversion.maxFileSize;
+
+  // i18n messages
+  convertingFileMessage = $localize`:@@convertingFileMessage:Converting file...`;
+
+  // Timeout reference for cleanup
+  private errorTimeoutId?: number;
 
   /**
    * Gestisce la selezione del file
@@ -51,7 +58,14 @@ export class HomePage {
    * Gestisce errori di file picker
    */
   onFileError(error: string): void {
+    this.errorMessage.set(error);
     this.showToast(error, 'danger');
+    // Clear any existing timeout
+    if (this.errorTimeoutId !== undefined) {
+      clearTimeout(this.errorTimeoutId);
+    }
+    // Clear error after 3 seconds
+    this.errorTimeoutId = window.setTimeout(() => this.errorMessage.set(null), 3000);
   }
 
   /**
@@ -214,5 +228,15 @@ export class HomePage {
    */
   formatFileSize(bytes: number): string {
     return this.fileSystemService.formatFileSize(bytes);
+  }
+
+  /**
+   * Cleanup when component is destroyed
+   */
+  ngOnDestroy(): void {
+    // Clear any pending error timeout
+    if (this.errorTimeoutId !== undefined) {
+      clearTimeout(this.errorTimeoutId);
+    }
   }
 }

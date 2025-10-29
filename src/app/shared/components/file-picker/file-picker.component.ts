@@ -1,4 +1,4 @@
-import { Component, output, input, signal } from '@angular/core';
+import { Component, output, input, signal, viewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { ConversionFormat } from '@core/models/conversion-format';
@@ -29,23 +29,27 @@ export class FilePickerComponent {
   isDragging = signal(false);
   selectedFileName = signal<string | null>(null);
 
+  // ViewChild
+  fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
+
   /**
    * Gestisce il click sul file picker
    */
   onPickerClick(): void {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = this.accept();
-    input.multiple = this.multiple();
+    const input = this.fileInput()?.nativeElement;
+    if (input) {
+      input.click();
+    }
+  }
 
-    input.onchange = (event: Event) => {
-      const target = event.target as HTMLInputElement;
-      if (target.files && target.files.length > 0) {
-        this.handleFiles(Array.from(target.files));
-      }
-    };
-
-    input.click();
+  /**
+   * Gestisce il cambio di file dall'input
+   */
+  onFileChange(event: Event): void {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+      this.handleFiles(Array.from(target.files));
+    }
   }
 
   /**

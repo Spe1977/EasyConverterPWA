@@ -126,25 +126,27 @@ export class UpdateNotificationComponent implements OnInit, OnDestroy {
 
   updateAvailable = false;
   showErrorToast = false;
-  private subscription?: Subscription;
+  private subscriptions = new Subscription();
 
   ngOnInit(): void {
     // Listen for updates
-    this.subscription = this.pwaUpdateService.listenForUpdates().subscribe((event) => {
+    const updateSub = this.pwaUpdateService.listenForUpdates().subscribe((event) => {
       console.log('New version available:', event.latestVersion);
       this.updateAvailable = true;
     });
+    this.subscriptions.add(updateSub);
 
     // Handle unrecoverable state
-    this.pwaUpdateService.getUnrecoverableState().subscribe((event) => {
+    const unrecoverableSub = this.pwaUpdateService.getUnrecoverableState().subscribe((event) => {
       console.error('App is in unrecoverable state:', event.reason);
       // In production, might want to show a different message
       this.showErrorToast = true;
     });
+    this.subscriptions.add(unrecoverableSub);
   }
 
   ngOnDestroy(): void {
-    this.subscription?.unsubscribe();
+    this.subscriptions.unsubscribe();
   }
 
   /**

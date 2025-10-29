@@ -8,8 +8,7 @@ describe('ScannerPage', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [ScannerPage],
-      imports: [IonicModule.forRoot()],
+      imports: [ScannerPage, IonicModule.forRoot()],
     }).compileComponents();
 
     fixture = TestBed.createComponent(ScannerPage);

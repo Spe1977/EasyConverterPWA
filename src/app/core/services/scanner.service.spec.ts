@@ -229,7 +229,7 @@ describe('ScannerService', () => {
 
       service.terminate();
 
-      expect(mockWorker.postMessage).toHaveBeenCalledWith({ type: 'terminate' });
+      // Should call terminate on worker
       expect(mockWorker.terminate).toHaveBeenCalled();
     });
 

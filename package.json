@@ -14,7 +14,11 @@
     "format:check": "prettier --check \"src/**/*.{ts,html,scss,css,json,md}\"",
     "e2e": "cypress open",
     "e2e:ci": "cypress run",
+    "e2e:offline": "playwright test",
+    "e2e:offline:ui": "playwright test --ui",
+    "e2e:offline:headed": "playwright test --headed",
     "analyze": "ng build --stats-json && npx webpack-bundle-analyzer dist/easyconverter/stats.json",
+    "extract-i18n": "ng extract-i18n --output-path src/locale",
     "prepare": "husky"
   },
   "lint-staged": {
@@ -47,6 +51,7 @@
     "@capacitor/share": "^7.0.2",
     "@capacitor/status-bar": "7.0.3",
     "@ionic/angular": "^8.0.0",
+    "@ionic/pwa-elements": "^3.3.0",
     "ionicons": "^7.0.0",
     "jspdf": "^3.0.3",
     "jszip": "^3.10.1",
@@ -63,6 +68,7 @@
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
+    "@angular-builders/custom-webpack": "^20.0.0",
     "@angular-devkit/build-angular": "^20.0.0",
     "@angular-eslint/builder": "^20.0.0",
     "@angular-eslint/eslint-plugin": "^20.0.0",
@@ -72,8 +78,10 @@
     "@angular/cli": "^20.0.0",
     "@angular/compiler-cli": "^20.0.0",
     "@angular/language-service": "^20.0.0",
+    "@angular/localize": "^20.3.7",
     "@capacitor/cli": "7.4.4",
     "@ionic/angular-toolkit": "^12.0.0",
+    "@playwright/test": "^1.56.1",
     "@types/jasmine": "~5.1.0",
     "@types/marked": "^5.0.2",
     "@types/papaparse": "^5.3.16",

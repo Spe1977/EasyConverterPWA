@@ -11,14 +11,18 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
     "sourceMap": true,
     "declaration": false,
     "downlevelIteration": true,
     "experimentalDecorators": true,
     "moduleResolution": "bundler",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "importHelpers": true,
     "target": "ES2022",
     "module": "ES2022",
+    "resolveJsonModule": true,
     "lib": [
       "ES2022",
       "dom"
@@ -32,6 +36,17 @@
       "@env/*": ["src/environments/*"]
     }
   },
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts"
+  ],
+  "exclude": [
+    "src/**/*.spec.ts",
+    "cypress/**/*",
+    "node_modules/**/*",
+    "dist/**/*",
+    "www/**/*"
+  ],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

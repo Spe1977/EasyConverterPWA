@@ -3,11 +3,10 @@
  */
 export interface ScanOptions {
   quality?: number; // 1-100
-  source?: 'camera' | 'photos' | 'gallery'; // Sorgente immagine
+  source?: 'camera' | 'photos'; // Sorgente immagine: camera o galleria foto
   resultType?: 'uri' | 'base64' | 'dataUrl'; // Tipo risultato
   autoDetect?: boolean; // Rilevamento automatico bordi (default: true)
   enhance?: boolean; // Auto correzione luminosità/contrasto (default: true)
-  autoEnhance?: boolean; // Alias per enhance
   detectEdges?: boolean; // Rilevamento automatico bordi
   correctPerspective?: boolean; // Correzione prospettiva
   filter?: ScanFilter; // Filtro da applicare
@@ -30,7 +29,6 @@ export enum ScanFilter {
 export interface ScanResult {
   success: boolean; // Indica se la scansione è riuscita
   data?: string; // Base64 data o URI
-  image?: string; // Base64 data URL (deprecated, usa data)
   text?: string; // Testo estratto con OCR (se abilitato)
   confidence?: number; // Confidenza OCR (0-100)
   error?: string; // Messaggio di errore se success = false

@@ -3,6 +3,8 @@ import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Capacitor } from '@capacitor/core';
 import { Observable, Subject } from 'rxjs';
 import type { ScanOptions, ScanResult } from '@core/models/scan-options';
+import { environment } from '@env/environment';
+import { retryWithBackoff } from '@core/utils/retry.util';
 
 /**
  * Scanner Service
@@ -21,6 +23,13 @@ export interface ProcessingProgress {
   message?: string;
 }
 
+export interface CameraPermissionStatus {
+  granted: boolean; // True se i permessi sono concessi
+  canRequest: boolean; // True se possiamo richiedere i permessi
+  status: 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' | 'limited' | 'unavailable';
+  message: string; // Messaggio user-friendly
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -28,6 +37,7 @@ export class ScannerService implements OnDestroy {
   private imageProcessingWorker: Worker | null = null;
   private progressSubject = new Subject<ProcessingProgress>();
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   /**
    * Observable per monitorare il progresso dell'elaborazione
@@ -38,43 +48,96 @@ export class ScannerService implements OnDestroy {
 
   /**
    * Inizializza il worker per l'elaborazione immagini
+   * Thread-safe: multiple concurrent calls will reuse the same initialization promise
    */
   public async initialize(): Promise<void> {
-    if (this.isInitialized) {
-      return;
+    // Return existing initialization promise if in progress
+    if (this.initPromise) {
+      return this.initPromise;
     }
 
-    // Create worker
-    this.imageProcessingWorker = new Worker(
-      new URL('../../workers/image-processing.worker', import.meta.url),
-      { type: 'module' }
-    );
+    // Already initialized
+    if (this.isInitialized) {
+      return Promise.resolve();
+    }
 
-    // Setup message handler
-    return new Promise((resolve, reject) => {
-      if (!this.imageProcessingWorker) {
-        reject(new Error('Failed to create image processing worker'));
-        return;
-      }
+    // Start new initialization and cache the promise
+    this.initPromise = this.doInitialize();
 
-      this.imageProcessingWorker.onmessage = ({ data }) => {
-        if (data.type === 'ready') {
-          this.isInitialized = true;
-          resolve();
-        } else if (data.type === 'error') {
-          reject(new Error(data.payload?.error || 'Worker initialization failed'));
-        }
-      };
+    try {
+      await this.initPromise;
+    } catch (error) {
+      // Clear cached promise on error to allow retry
+      this.initPromise = null;
+      throw error;
+    }
 
-      // Send init message
-      this.imageProcessingWorker.postMessage({ type: 'init' });
-    });
+    return this.initPromise;
   }
 
   /**
-   * Cattura un'immagine dalla fotocamera
+   * Internal initialization logic with retry support
    */
-  public async captureImage(source: 'camera' | 'gallery' = 'camera'): Promise<Blob> {
+  private async doInitialize(): Promise<void> {
+    return retryWithBackoff(
+      async () => {
+        // Create worker
+        this.imageProcessingWorker = new Worker(
+          new URL('../../../workers/image-processing.worker.ts', import.meta.url),
+          { type: 'module' }
+        );
+
+        // Setup message handler
+        return new Promise<void>((resolve, reject) => {
+          if (!this.imageProcessingWorker) {
+            reject(new Error('Failed to create image processing worker'));
+            return;
+          }
+
+          // Set timeout for initialization
+          const timeout = setTimeout(() => {
+            reject(new Error('Worker initialization timeout'));
+          }, environment.scanner.workerTimeout);
+
+          this.imageProcessingWorker.onmessage = ({ data }) => {
+            if (data.type === 'ready') {
+              clearTimeout(timeout);
+              this.isInitialized = true;
+              resolve();
+            } else if (data.type === 'error') {
+              clearTimeout(timeout);
+              reject(new Error(data.payload?.error || 'Worker initialization failed'));
+            }
+          };
+
+          this.imageProcessingWorker.onerror = (error) => {
+            clearTimeout(timeout);
+            reject(new Error(`Worker error: ${error.message || 'Unknown error'}`));
+          };
+
+          // Send init message
+          this.imageProcessingWorker.postMessage({ type: 'init' });
+        });
+      },
+      {
+        ...environment.scanner.workerRetry,
+        onRetry: (attempt, error) => {
+          console.warn(`Scanner worker initialization retry ${attempt}: ${error.message}`);
+          // Terminate failed worker before retry
+          if (this.imageProcessingWorker) {
+            this.imageProcessingWorker.terminate();
+            this.imageProcessingWorker = null;
+          }
+          this.isInitialized = false;
+        },
+      }
+    );
+  }
+
+  /**
+   * Cattura un'immagine dalla fotocamera o galleria
+   */
+  public async captureImage(source: 'camera' | 'photos' = 'camera'): Promise<Blob> {
     this.progressSubject.next({
       progress: 0,
       status: 'capturing',
@@ -82,6 +145,16 @@ export class ScannerService implements OnDestroy {
     });
 
     try {
+      // Check if camera is available in web environment
+      if (!Capacitor.isNativePlatform() && source === 'camera') {
+        // Check for getUserMedia support
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error(
+            'Camera API not supported in this browser. Please use the photo gallery option.'
+          );
+        }
+      }
+
       const cameraSource = source === 'camera' ? CameraSource.Camera : CameraSource.Photos;
 
       const photo = await Camera.getPhoto({
@@ -90,6 +163,10 @@ export class ScannerService implements OnDestroy {
         quality: 100,
         allowEditing: false,
         correctOrientation: true,
+        // Prompt for camera permission in web
+        promptLabelHeader: 'Camera Permission',
+        promptLabelPhoto: 'Select Photo',
+        promptLabelPicture: 'Take Picture',
       });
 
       if (!photo.webPath) {
@@ -108,10 +185,22 @@ export class ScannerService implements OnDestroy {
 
       return blob;
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      // Handle user cancellation gracefully
+      if (errorMessage.includes('cancel') || errorMessage.includes('User cancelled')) {
+        this.progressSubject.next({
+          progress: 0,
+          status: 'error',
+          message: 'Image capture cancelled',
+        });
+        throw new Error('Image capture cancelled by user');
+      }
+
       this.progressSubject.next({
         progress: 0,
         status: 'error',
-        message: `Failed to capture image: ${error}`,
+        message: `Failed to capture image: ${errorMessage}`,
       });
       throw error;
     }
@@ -281,6 +370,29 @@ export class ScannerService implements OnDestroy {
   }
 
   /**
+   * Valida un blob immagine prima di processarlo
+   * @throws Error se la validazione fallisce
+   */
+  private validateImageBlob(blob: Blob): void {
+    // Verifica dimensione
+    if (blob.size > environment.scanner.maxImageSize) {
+      const maxSizeMB = Math.round(environment.scanner.maxImageSize / (1024 * 1024));
+      const actualSizeMB = Math.round(blob.size / (1024 * 1024));
+      throw new Error(
+        `Image too large: ${actualSizeMB}MB (max ${maxSizeMB}MB). Please use a smaller image.`
+      );
+    }
+
+    // Verifica formato
+    const supportedFormats = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!supportedFormats.includes(blob.type)) {
+      throw new Error(
+        `Unsupported image format: ${blob.type}. Supported formats: JPEG, PNG, WEBP.`
+      );
+    }
+  }
+
+  /**
    * Scansiona un documento con pipeline completa:
    * 1. Cattura immagine
    * 2. Rileva bordi automaticamente (opzionale)
@@ -292,9 +404,10 @@ export class ScannerService implements OnDestroy {
 
     try {
       // Step 1: Capture image
-      const imageBlob = await this.captureImage(
-        options.source === 'gallery' ? 'gallery' : 'camera'
-      );
+      const imageBlob = await this.captureImage(options.source === 'photos' ? 'photos' : 'camera');
+
+      // Validate image before processing
+      this.validateImageBlob(imageBlob);
 
       let finalBlob = imageBlob;
 
@@ -347,29 +460,126 @@ export class ScannerService implements OnDestroy {
 
   /**
    * Verifica se la fotocamera è disponibile su questo dispositivo
+   * @deprecated Use checkCameraPermissionStatus() for more detailed information
    */
   public async isCameraAvailable(): Promise<boolean> {
+    const status = await this.checkCameraPermissionStatus();
+    return status.granted || status.canRequest;
+  }
+
+  /**
+   * Controlla lo stato dettagliato dei permessi camera
+   * Fornisce informazioni su permessi, disponibilità e messaggi user-friendly
+   */
+  public async checkCameraPermissionStatus(): Promise<CameraPermissionStatus> {
+    // Check if Camera plugin is available
     if (!Capacitor.isPluginAvailable('Camera')) {
-      return false;
+      return {
+        granted: false,
+        canRequest: false,
+        status: 'unavailable',
+        message: 'Camera is not available on this device',
+      };
     }
 
     try {
       const permissions = await Camera.checkPermissions();
-      return permissions.camera === 'granted' || permissions.camera === 'prompt';
-    } catch {
-      return false;
+      const cameraStatus = permissions.camera;
+
+      switch (cameraStatus) {
+        case 'granted':
+          return {
+            granted: true,
+            canRequest: false,
+            status: 'granted',
+            message: 'Camera access granted',
+          };
+
+        case 'denied':
+          return {
+            granted: false,
+            canRequest: false,
+            status: 'denied',
+            message:
+              'Camera access denied. Please enable camera permissions in your device settings.',
+          };
+
+        case 'prompt':
+        case 'prompt-with-rationale':
+          return {
+            granted: false,
+            canRequest: true,
+            status: cameraStatus,
+            message: 'Camera permission not yet requested',
+          };
+
+        case 'limited':
+          return {
+            granted: true, // Limited access is still usable
+            canRequest: false,
+            status: 'limited',
+            message: 'Camera access is limited',
+          };
+
+        default:
+          return {
+            granted: false,
+            canRequest: false,
+            status: 'unavailable',
+            message: `Unknown permission status: ${cameraStatus}`,
+          };
+      }
+    } catch (error) {
+      console.error('Error checking camera permissions:', error);
+      return {
+        granted: false,
+        canRequest: false,
+        status: 'unavailable',
+        message: 'Failed to check camera permissions',
+      };
     }
   }
 
   /**
    * Richiede i permessi per la fotocamera
+   * @returns CameraPermissionStatus con il risultato della richiesta
    */
-  public async requestCameraPermissions(): Promise<boolean> {
+  public async requestCameraPermissions(): Promise<CameraPermissionStatus> {
     try {
       const permissions = await Camera.requestPermissions();
-      return permissions.camera === 'granted';
-    } catch {
-      return false;
+      const cameraStatus = permissions.camera;
+
+      if (cameraStatus === 'granted' || cameraStatus === 'limited') {
+        return {
+          granted: true,
+          canRequest: false,
+          status: cameraStatus,
+          message: 'Camera permission granted',
+        };
+      } else if (cameraStatus === 'denied') {
+        return {
+          granted: false,
+          canRequest: false,
+          status: 'denied',
+          message:
+            'Camera permission denied. Please enable it in your device settings to use this feature.',
+        };
+      } else {
+        return {
+          granted: false,
+          canRequest: true,
+          status: cameraStatus,
+          message: 'Camera permission not granted',
+        };
+      }
+    } catch (error) {
+      console.error('Error requesting camera permissions:', error);
+      return {
+        granted: false,
+        canRequest: false,
+        status: 'unavailable',
+        message: 'Failed to request camera permissions',
+      };
     }
   }
 

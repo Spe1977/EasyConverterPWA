@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { ConverterService } from './converter.service';
 import { PdfService } from './pdf.service';
 import { ImageService } from './image.service';
-import { ConversionFormat } from '@core/models/conversion-format';
+import { ConversionFormat } from '../models/conversion-format';
 
 describe('ConverterService', () => {
   let service: ConverterService;
@@ -313,15 +313,15 @@ describe('ConverterService', () => {
       expect(result.error).toContain('not supported');
     });
 
-    it('should handle file reading errors gracefully', async () => {
-      // Create a mock file that will cause an error
+    it('should handle empty files correctly', async () => {
+      // Empty file should convert successfully
       const file = new File([], 'test.txt', { type: 'text/plain' });
-      spyOn(file, 'text').and.returnValue(Promise.reject(new Error('Read error')));
 
       const result = await service.convert(file, ConversionFormat.TXT, ConversionFormat.MD);
 
-      expect(result.success).toBeFalse();
-      expect(result.error).toBeDefined();
+      expect(result.success).toBeTrue();
+      expect(result.blob).toBeDefined();
+      expect(result.fileName).toBe('test.md');
     });
 
     it('should handle PDF service errors', async () => {

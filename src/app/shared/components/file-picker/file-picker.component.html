@@ -1,3 +1,5 @@
+<input #fileInput type="file" [accept]="accept()" (change)="onFileChange($event)" style="display: none" />
+
 <div
   class="file-picker-container"
   [class.dragging]="isDragging()"
@@ -15,13 +17,13 @@
     </div>
   } @else {
     <div class="picker-text">
-      <h3>Drop file here or click to select</h3>
+      <h3 i18n="@@filePickerDropText">Drop file here or click to select</h3>
       <p class="ion-text-center">
         @if (accept() !== '*/*') {
-          <span>Accepted: {{ accept() }}</span
+          <span i18n="@@filePickerAcceptedLabel">Accepted: {{ accept() }}</span
           ><br />
         }
-        <span>Max size: {{ formatMaxSize() }}</span>
+        <span i18n="@@filePickerMaxSizeLabel">Max size: {{ formatMaxSize() }}</span>
       </p>
     </div>
   }

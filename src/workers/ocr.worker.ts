@@ -38,8 +38,12 @@ async function initializeWorker(languages: string[] = ['ita']): Promise<void> {
     const Tesseract = await import('tesseract.js');
     const createWorkerFn: typeof createWorker = Tesseract.createWorker;
 
-    tesseractWorker = await createWorkerFn({
-      logger: (m) => {
+    // Configure Tesseract.js with CDN paths for traineddata files
+    // Using jsDelivr CDN for reliable access to Tesseract language data
+    tesseractWorker = await createWorkerFn(languages.join('+'), 1, {
+      langPath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@v5.0.0/lang-data',
+      logger: (m: any) => {
+        // Report progress during OCR recognition
         if (m.status === 'recognizing text') {
           self.postMessage({
             type: 'progress',
@@ -48,10 +52,6 @@ async function initializeWorker(languages: string[] = ['ita']): Promise<void> {
         }
       },
     });
-
-    // Load languages
-    await tesseractWorker.loadLanguage(languages.join('+'));
-    await tesseractWorker.initialize(languages.join('+'));
 
     self.postMessage({ type: 'ready' } as OcrResponse);
   } catch (error) {

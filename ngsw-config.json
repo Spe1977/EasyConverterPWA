@@ -48,6 +48,7 @@
       "name": "pdf-libraries",
       "urls": [
         "**/pdf.worker.min.js",
+        "**/pdf.worker.min.mjs",
         "**/pdfjs-dist/**"
       ],
       "cacheConfig": {

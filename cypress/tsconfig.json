@@ -1,0 +1,19 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../out-tsc/cypress",
+    "moduleResolution": "node",
+    "types": ["cypress", "node"],
+    "target": "ES2022",
+    "lib": ["ES2022", "dom"],
+    "skipLibCheck": true
+  },
+  "include": [
+    "**/*.ts"
+  ],
+  "exclude": [
+    "../node_modules/**/*",
+    "../dist/**/*",
+    "../www/**/*"
+  ]
+}

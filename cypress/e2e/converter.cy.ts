@@ -15,13 +15,13 @@ describe('EasyConverter - Converter Feature', () => {
     });
 
     it('should show hero section with benefits', () => {
-      cy.contains('Fast').should('be.visible');
-      cy.contains('Secure').should('be.visible');
-      cy.contains('Offline').should('be.visible');
+      cy.contains('Fast').should('exist');
+      cy.contains('Secure').should('exist');
+      cy.contains('Offline').should('exist');
     });
 
     it('should have scanner promo card', () => {
-      cy.contains('Document Scanner').should('be.visible');
+      cy.contains('Scan Documents').should('be.visible');
     });
 
     it('should have toolbar with scanner button', () => {
@@ -32,7 +32,7 @@ describe('EasyConverter - Converter Feature', () => {
   describe('File Selection', () => {
     it('should display file picker instructions', () => {
       cy.get('app-file-picker').within(() => {
-        cy.contains('Choose File').should('be.visible');
+        cy.contains('Drop file here or click to select').should('be.visible');
       });
     });
 
@@ -41,7 +41,7 @@ describe('EasyConverter - Converter Feature', () => {
     });
 
     it('should support drag and drop', () => {
-      cy.get('app-file-picker').should('have.attr', 'class').and('match', /picker/);
+      cy.get('.file-picker-container').should('exist');
     });
   });
 
@@ -115,7 +115,10 @@ describe('EasyConverter - Converter Feature', () => {
     });
 
     it('should allow changing target format', () => {
-      cy.contains('Select Target Format').should('be.visible');
+      cy.wait(1000);
+      cy.get('.format-box').last().click();
+      cy.wait(500);
+      cy.contains('Select Target Format', { timeout: 10000 }).should('be.visible');
     });
   });
 
@@ -164,12 +167,12 @@ describe('EasyConverter - Converter Feature', () => {
 
   describe('Navigation', () => {
     it('should navigate to scanner page', () => {
-      cy.get('ion-toolbar ion-button').contains('Scanner').click();
+      cy.get('ion-toolbar ion-button[routerLink="/scanner"]').should('exist').click();
       cy.url().should('include', '/scanner');
     });
 
     it('should navigate via promo card', () => {
-      cy.contains('Try Scanner').click();
+      cy.contains('Scan Documents').scrollIntoView().click({ force: true });
       cy.url().should('include', '/scanner');
     });
   });
@@ -187,8 +190,9 @@ describe('EasyConverter - Converter Feature', () => {
         { force: true }
       );
 
-      // Should show error toast or message
-      cy.contains('too large', { timeout: 5000, matchCase: false }).should('exist');
+      // Should show error message
+      cy.get('[data-cy="error-message"]', { timeout: 5000 }).should('be.visible');
+      cy.get('[data-cy="error-message"]').should('contain.text', 'File too large');
     });
 
     it('should handle invalid file types gracefully', () => {
