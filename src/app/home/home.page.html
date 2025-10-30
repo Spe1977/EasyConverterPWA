@@ -4,11 +4,6 @@
       <ion-icon name="swap-horizontal-outline" class="title-icon"></ion-icon>
       <span i18n="@@appTitle">EasyConverter</span>
     </ion-title>
-    <ion-buttons slot="end">
-      <ion-button routerLink="/scanner" i18n-aria-label="@@scannerButtonAriaLabel" aria-label="Open scanner">
-        <ion-icon slot="icon-only" name="scan"></ion-icon>
-      </ion-button>
-    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -24,20 +19,6 @@
     <div class="hero-section">
       <h1 i18n="@@heroTitle">Convert Any File</h1>
       <p i18n="@@heroSubtitle">Fast, secure, and 100% offline conversion</p>
-
-      <!-- Scanner Feature Card -->
-      <ion-card class="scanner-promo-card" button="true" routerLink="/scanner">
-        <ion-card-content>
-          <div class="promo-content">
-            <ion-icon name="scan" color="primary"></ion-icon>
-            <div class="promo-text">
-              <h3 i18n="@@scanDocumentsTitle">Scan Documents</h3>
-              <p i18n="@@scanDocumentsDescription">Use your camera to scan and convert documents to PDF</p>
-            </div>
-            <ion-icon name="chevron-forward" color="medium"></ion-icon>
-          </div>
-        </ion-card-content>
-      </ion-card>
     </div>
 
     <!-- File Picker -->

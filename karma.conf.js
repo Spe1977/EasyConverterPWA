@@ -33,6 +33,7 @@ module.exports = function (config) {
       ]
     },
     reporters: ['progress', 'kjhtml'],
+    browserNoActivityTimeout: 30000, // 30 seconds timeout
     port: 9876,
     colors: true,
     logLevel: config.LOG_INFO,

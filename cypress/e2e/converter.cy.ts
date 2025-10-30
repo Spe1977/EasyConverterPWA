@@ -19,14 +19,6 @@ describe('EasyConverter - Converter Feature', () => {
       cy.contains('Secure').should('exist');
       cy.contains('Offline').should('exist');
     });
-
-    it('should have scanner promo card', () => {
-      cy.contains('Scan Documents').should('be.visible');
-    });
-
-    it('should have toolbar with scanner button', () => {
-      cy.get('ion-toolbar ion-button').should('exist');
-    });
   });
 
   describe('File Selection', () => {
@@ -162,18 +154,6 @@ describe('EasyConverter - Converter Feature', () => {
           cy.contains('Convert').click();
         }
       });
-    });
-  });
-
-  describe('Navigation', () => {
-    it('should navigate to scanner page', () => {
-      cy.get('ion-toolbar ion-button[routerLink="/scanner"]').should('exist').click();
-      cy.url().should('include', '/scanner');
-    });
-
-    it('should navigate via promo card', () => {
-      cy.contains('Scan Documents').scrollIntoView().click({ force: true });
-      cy.url().should('include', '/scanner');
     });
   });
 

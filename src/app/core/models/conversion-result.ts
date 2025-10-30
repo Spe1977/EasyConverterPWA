@@ -29,8 +29,6 @@ export interface ConversionOptions {
   dpi?: number; // DPI per PDF to image
   scale?: number; // Scala per rendering
   pageNumbers?: number[]; // Pagine specifiche da convertire
-  ocrLanguage?: string; // Lingua OCR (ita, eng, etc.)
-  enableOCR?: boolean; // Abilita OCR per immagini
   compression?: boolean; // Comprimi output
   [key: string]: any;
 }

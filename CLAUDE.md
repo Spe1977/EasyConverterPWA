@@ -4,9 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-EasyConverter is a mobile-first Progressive Web App built with Angular 20, Ionic 8, and Capacitor 7 for offline document conversion and scanning. All conversions run 100% client-side in the browser using TypeScript libraries.
+EasyConverter is a mobile-first Progressive Web App built with Angular 20, Ionic 8, and Capacitor 7 for offline document conversion. All conversions run 100% client-side in the browser using TypeScript libraries.
 
-**Core functionality**: Convert between 10+ formats (TXT, MD, HTML, CSV, JSON, XLSX, ODS, PDF, PNG/JPEG/WEBP, EPUB) and scan documents using camera with OCR capabilities.
+**Core functionality**: Convert between 10+ formats (TXT, MD, HTML, CSV, JSON, XLSX, ODS, PDF, PNG/JPEG/WEBP, EPUB).
 
 ## Development Commands
 
@@ -61,29 +61,21 @@ src/app/
 ├── core/
 │   ├── models/          # TypeScript interfaces and enums
 │   │   ├── conversion-format.ts    # ConversionFormat enum + FormatInfo
-│   │   ├── conversion-result.ts    # Conversion result interfaces
-│   │   └── scan-options.ts         # Scanner and OCR interfaces
+│   │   └── conversion-result.ts    # Conversion result interfaces
 │   └── services/        # Core Angular services
 │       ├── converter.service.ts    # Main conversion orchestrator
 │       ├── file-system.service.ts  # File I/O multiplatform
 │       ├── image.service.ts        # Image processing and conversion
 │       ├── pdf.service.ts          # PDF creation and extraction
-│       ├── ocr.service.ts          # OCR with Tesseract.js
-│       ├── scanner.service.ts      # Document scanning with OpenCV.js
 │       └── pwa-update.service.ts   # PWA update notifications
 ├── features/
-│   ├── converter/       # Document conversion feature (home page)
-│   └── scanner/         # Camera scanning feature module
-│       └── scanner.page.ts  # Scanner UI with full pipeline
-├── shared/
-│   └── components/      # Reusable UI components
-│       ├── file-picker/         # Drag & drop file picker
-│       ├── format-selector/     # Format selection modal
-│       ├── progress-indicator/  # Conversion progress overlay
-│       └── update-notification/ # PWA update banner
-└── workers/             # Web Workers for heavy processing
-    ├── ocr.worker.ts           # Tesseract.js OCR worker
-    └── image-processing.worker.ts  # OpenCV.js edge detection worker
+│   └── converter/       # Document conversion feature (home page)
+└── shared/
+    └── components/      # Reusable UI components
+        ├── file-picker/         # Drag & drop file picker
+        ├── format-selector/     # Format selection modal
+        ├── progress-indicator/  # Conversion progress overlay
+        └── update-notification/ # PWA update banner
 ```
 
 ## Key Libraries and Usage
@@ -100,12 +92,7 @@ src/app/
 - **pdf-lib** (1.17.1) - PDF creation/modification
 - **jspdf** (3.0.3) - Alternative PDF generation
 
-### Image & OCR (Lazy-Loaded)
-- **opencv.js** (1.2.1) - ~10MB, edge detection, perspective correction, auto-crop
-- **tesseract.js** (6.0.1) - ~2MB + 2-4MB language data, OCR text recognition
-
 ### Capacitor Plugins
-- **@capacitor/camera** (7.0.2) - Camera access with web fallback
 - **@capacitor/filesystem** (7.1.4) - File system operations
 - **@capacitor/share** (7.0.2) - Native share dialog
 - **@capacitor/network** (7.0.2) - Network status detection
@@ -115,25 +102,20 @@ src/app/
 ### Bundle Size Strategy
 - Core bundle: ~600KB (always loaded)
 - PDF libraries: ~2MB (lazy loaded on demand)
-- opencv.js: ~10MB (lazy loaded with dynamic import)
-- tesseract.js: ~2MB + language data (lazy loaded)
 
 **Always use dynamic imports for heavy libraries**:
 ```typescript
-// Good - lazy load opencv.js
-const cv = await import('opencv.js');
+// Good - lazy load heavy PDF libraries
+const pdfjs = await import('pdfjs-dist');
 
-// Bad - loads opencv.js in main bundle
-import * as cv from 'opencv.js';
+// Bad - loads in main bundle
+import * as pdfjs from 'pdfjs-dist';
 ```
 
-### Web Workers
-Heavy processing (OCR, image processing) **must run in Web Workers** to avoid blocking the UI thread. Workers are located in `src/workers/`.
-
 ### Memory Management
-- Images from camera can be 8-12MP - resize before processing
+- Large images should be resized before processing
 - PDF multi-page rendering is memory intensive - process page by page
-- Clear canvas contexts and dispose of opencv Mat objects after use
+- Clear canvas contexts after use to free memory
 
 ## Configuration Files
 
@@ -154,11 +136,6 @@ Heavy processing (OCR, image processing) **must run in Web Workers** to avoid bl
 - `skipLibCheck: true` - Required for pdfjs-dist type compatibility
 - Separate configs: `tsconfig.app.json`, `tsconfig.spec.json`, `cypress/tsconfig.json`
 
-### Custom Type Declarations
-- `src/types/opencv.d.ts` - TypeScript definitions for opencv.js
-- Minimal type definitions for features used in the project
-- Add custom `.d.ts` files to `src/types/` for libraries without types
-
 ## Environment Configuration
 
 Configuration lives in `src/environments/`:
@@ -166,8 +143,6 @@ Configuration lives in `src/environments/`:
 - `environment.prod.ts` - Production config (file replacement in angular.json)
 
 Available settings:
-- `ocr.defaultLanguage` - Default OCR language ('ita')
-- `ocr.supportedLanguages` - Available OCR languages array
 - `conversion.maxFileSize` - Max file size (50MB)
 - `conversion.defaultQuality` - Image quality (85)
 - `conversion.defaultDPI` - PDF rendering DPI (150)
@@ -179,45 +154,14 @@ Conversion capabilities are defined in `src/app/core/models/conversion-format.ts
 - **Full support**: TXT, MD, HTML, CSV, JSON, XLSX, PDF, PNG/JPEG/WEBP conversions
 - **Limited support**: ODS (read works, write requires SheetJS Pro)
 - **PDF to text**: Extraction only, no formatting preservation
-- **OCR**: 70-95% accuracy depending on image quality (8 languages supported)
 - **No support**: DOCX, DOC, ODT, RTF (require backend or commercial libraries)
-
-## Scanner Feature
-
-### Document Scanning Pipeline
-The scanner feature (`src/app/features/scanner/`) provides a complete document scanning workflow:
-
-1. **Capture** - Take photo with camera or load from gallery (Capacitor Camera API)
-2. **Edge Detection** - Automatically detect document borders (OpenCV.js Canny algorithm)
-3. **Perspective Correction** - Unwarp tilted documents using 4-point transformation
-4. **Enhancement** - Apply adaptive threshold for better contrast and readability
-5. **OCR** - Extract text with Tesseract.js (optional, 8 languages)
-6. **Export** - Save as PNG, TXT, or PDF
-
-### Scanner Services
-- **ScannerService** - Orchestrates the scanning pipeline, communicates with image-processing worker
-- **OcrService** - Text recognition via ocr worker, supports batch processing
-- **ImageService** - Image format conversion, resize, crop, filters
-- **FileSystemService** - Save files natively on mobile, download on web
-
-### OCR Languages
-Supported languages (configured in `environment.ts`):
-- Italian (ita), English (eng), French (fra), German (deu)
-- Spanish (spa), Portuguese (por), Russian (rus), Chinese Simplified (chi_sim)
-
-### Performance Notes
-- Edge detection runs in Web Worker to avoid blocking UI
-- OCR runs in separate Web Worker with progress tracking
-- OpenCV.js (~10MB) and Tesseract.js (~6MB) are lazy loaded on first use
-- Language data files (~2-4MB each) downloaded on demand
 
 ## Progressive Web App Strategy
 
 ### Offline-First Design
 All conversions run client-side with no backend required. Service Worker caches:
 1. Core app shell and assets (indefinite cache)
-2. Heavy libraries: opencv.js, tesseract.js (~12MB, 30 days cache)
-3. PDF libraries: pdfjs-dist (~2MB, 14 days cache)
+2. PDF libraries: pdfjs-dist (~2MB, 14 days cache)
 
 Configuration: `ngsw-config.json`
 
@@ -316,9 +260,9 @@ this.parentSub = observable1$.subscribe(() => {
 
 ### Test Coverage
 Current test suite includes:
-- 6 service test files with 100+ unit tests
-- 3 E2E test files with 90+ scenarios
-- Coverage areas: file conversion, OCR, scanner, PDF, images, file system
+- Service test files with unit tests
+- E2E test files for conversion scenarios
+- Coverage areas: file conversion, PDF, images, file system
 
 ## Development Tools
 
@@ -344,21 +288,13 @@ Pre-commit hooks are configured to run automatically:
 ### TypeScript Compilation
 If you encounter TypeScript errors with third-party libraries:
 1. Check if `skipLibCheck: true` is set in `tsconfig.json`
-2. Add custom type declarations in `src/types/*.d.ts`
-3. For Cypress, ensure `cypress/tsconfig.json` extends the base config
+2. For Cypress, ensure `cypress/tsconfig.json` extends the base config
 
 ### Build Warnings
 Expected warnings (non-blocking):
 - CommonJS dependency warnings for `pdf-lib` (unavoidable, library not ESM)
 - SCSS budget warnings for large component styles (monitor but acceptable)
 - Bundle size warnings if under 5MB initial (configured in `angular.json`)
-
-### Web Workers
-When using Web Workers with TypeScript:
-- Worker files are in `src/workers/`
-- Use `postMessage()` for communication
-- Properly terminate workers after use to free memory
-- Lazy load heavy libraries (opencv.js, tesseract.js) inside workers
 
 ### Service Worker Issues
 If Service Worker isn't working:

@@ -30,7 +30,6 @@
             "polyfills": "src/polyfills.ts",
             "tsConfig": "tsconfig.app.json",
             "inlineStyleLanguage": "scss",
-            "webWorkerTsConfig": "tsconfig.worker.json",
             "assets": [
               {
                 "glob": "**/*",
@@ -50,11 +49,6 @@
               {
                 "glob": "pdf.worker.min.mjs",
                 "input": "node_modules/pdfjs-dist/build",
-                "output": "/assets"
-              },
-              {
-                "glob": "opencv.js",
-                "input": "node_modules/opencv.js",
                 "output": "/assets"
               }
             ],
@@ -150,11 +144,6 @@
               {
                 "glob": "pdf.worker.min.mjs",
                 "input": "node_modules/pdfjs-dist/build",
-                "output": "/assets"
-              },
-              {
-                "glob": "opencv.js",
-                "input": "node_modules/opencv.js",
                 "output": "/assets"
               }
             ],

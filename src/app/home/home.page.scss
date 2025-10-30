@@ -28,59 +28,6 @@
   }
 }
 
-.scanner-promo-card {
-  margin: 0;
-  box-shadow: 0 4px 12px rgba(56, 128, 255, 0.2);
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  cursor: pointer;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(56, 128, 255, 0.3);
-  }
-
-  ion-card-content {
-    padding: 12px;
-  }
-
-  .promo-content {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    > ion-icon:first-child {
-      font-size: 32px;
-      flex-shrink: 0;
-    }
-
-    .promo-text {
-      flex: 1;
-      text-align: left;
-
-      h3 {
-        font-size: 16px;
-        font-weight: 600;
-        color: var(--ion-color-dark);
-        margin: 0 0 2px 0;
-      }
-
-      p {
-        font-size: 13px;
-        color: var(--ion-color-medium);
-        margin: 0;
-        line-height: 1.3;
-      }
-    }
-
-    > ion-icon:last-child {
-      font-size: 20px;
-      flex-shrink: 0;
-    }
-  }
-}
-
 .section {
   margin-bottom: 24px;
 }
@@ -216,34 +163,6 @@ ion-card {
 
     p {
       font-size: 13px;
-    }
-  }
-
-  .scanner-promo-card {
-    ion-card-content {
-      padding: 10px;
-    }
-
-    .promo-content {
-      gap: 10px;
-
-      > ion-icon:first-child {
-        font-size: 28px;
-      }
-
-      .promo-text {
-        h3 {
-          font-size: 15px;
-        }
-
-        p {
-          font-size: 12px;
-        }
-      }
-
-      > ion-icon:last-child {
-        font-size: 18px;
-      }
     }
   }
 
