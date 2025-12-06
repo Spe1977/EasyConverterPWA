@@ -71,7 +71,7 @@ export class ImageService {
   private async preserveExifData(sourceFile: File, targetBlob: Blob): Promise<Blob> {
     try {
       // Import piexifjs dinamicamente
-      const piexif = await import('piexifjs') as any;
+      const piexif = (await import('piexifjs')) as any;
 
       // Leggi EXIF da source
       const sourceArrayBuffer = await sourceFile.arrayBuffer();

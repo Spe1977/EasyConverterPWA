@@ -226,12 +226,14 @@ export class CsvService {
         reader.readAsText(file, encoding);
       } else {
         // Auto-detect encoding prima di leggere
-        this.detectEncoding(file).then((detectedEncoding) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsText(file, detectedEncoding);
-        }).catch(reject);
+        this.detectEncoding(file)
+          .then((detectedEncoding) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsText(file, detectedEncoding);
+          })
+          .catch(reject);
       }
     });
   }

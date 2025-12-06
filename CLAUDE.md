@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 EasyConverter is a mobile-first Progressive Web App built with Angular 20, Ionic 8, and Capacitor 7 for offline document conversion. All conversions run 100% client-side in the browser using TypeScript libraries.
 
-**Core functionality**: Convert between 10+ formats (TXT, MD, HTML, CSV, JSON, XLSX, ODS, PDF, PNG/JPEG/WEBP, EPUB).
+**Core functionality**: Convert between 15+ formats (TXT, MD, HTML, RTF, CSV, JSON, XLSX, ODS, YAML, XML, PDF, PNG/JPEG/WEBP, EPUB, Base64) with 120+ conversion combinations.
 
 ## Development Commands
 
@@ -64,10 +64,17 @@ src/app/
 │   │   └── conversion-result.ts    # Conversion result interfaces
 │   └── services/        # Core Angular services
 │       ├── converter.service.ts    # Main conversion orchestrator
+│       ├── base64.service.ts       # Base64 encode/decode (browser-native)
+│       ├── csv.service.ts          # CSV parsing with auto-detection
+│       ├── epub.service.ts         # EPUB3 generation (metadata, TOC, cover)
 │       ├── file-system.service.ts  # File I/O multiplatform
+│       ├── html.service.ts         # HTML sanitization and processing
 │       ├── image.service.ts        # Image processing and conversion
 │       ├── pdf.service.ts          # PDF creation and extraction
-│       └── pwa-update.service.ts   # PWA update notifications
+│       ├── pwa-update.service.ts   # PWA update notifications
+│       ├── rtf.service.ts          # RTF conversion (browser-native)
+│       ├── xml.service.ts          # XML ↔ JSON conversion
+│       └── yaml.service.ts         # YAML ↔ JSON conversion
 ├── features/
 │   └── converter/       # Document conversion feature (home page)
 └── shared/
@@ -82,15 +89,23 @@ src/app/
 
 ### Document Conversion
 - **xlsx** (0.18.5) - Excel/CSV/ODS read/write
-- **papaparse** (5.5.3) - Advanced CSV parsing
+- **papaparse** (5.5.3) - Advanced CSV parsing with encoding detection
 - **marked** (16.4.1) - Markdown → HTML
 - **turndown** (7.2.1) - HTML → Markdown
 - **jszip** (3.10.1) - ZIP handling for EPUB
+- **yaml** (2.6.1) - YAML parsing and serialization (by eemeli)
+- **fast-xml-parser** (4.5.2) - Fast XML ↔ JSON conversion
+- **dompurify** (3.2.6) - HTML sanitization for security
+- **piexifjs** (1.0.7) - EXIF metadata preservation in images
 
 ### PDF Processing
 - **pdfjs-dist** (5.4.296) - PDF reading, rendering, text extraction (Mozilla)
 - **pdf-lib** (1.17.1) - PDF creation/modification
 - **jspdf** (3.0.3) - Alternative PDF generation
+
+### Browser-Native Implementations
+- **RTF Service** - Custom HTML ↔ RTF converter (0 dependencies)
+- **Base64 Service** - Native encode/decode (0 dependencies)
 
 ### Capacitor Plugins
 - **@capacitor/filesystem** (7.1.4) - File system operations
@@ -100,22 +115,57 @@ src/app/
 ## Performance Considerations
 
 ### Bundle Size Strategy
-- Core bundle: ~600KB (always loaded)
-- PDF libraries: ~2MB (lazy loaded on demand)
+```
+Initial Bundle:  665 KB raw / 174 KB gzipped
+Lazy Chunks:     1008 KB total (lazy-loaded on demand)
+
+Breakdown:
+├── xlsx:              423 KB (119 KB gzipped)
+├── marked:             40 KB (11 KB gzipped)
+├── turndown:           11 KB (4 KB gzipped)
+├── yaml:              104 KB (29 KB gzipped)
+├── pdfjs-dist:        400 KB (98 KB gzipped)
+└── fast-xml-parser:    30 KB (9 KB gzipped)
+```
 
 **Always use dynamic imports for heavy libraries**:
 ```typescript
-// Good - lazy load heavy PDF libraries
-const pdfjs = await import('pdfjs-dist');
+// Good - lazy load heavy libraries (converter.service.ts pattern)
+private async getXLSX() {
+  if (!this.xlsxCache) {
+    const module = await import('xlsx');
+    this.xlsxCache = module;
+  }
+  return this.xlsxCache;
+}
+
+// Good - usage
+const XLSX = await this.getXLSX();
+const workbook = XLSX.read(data);
 
 // Bad - loads in main bundle
-import * as pdfjs from 'pdfjs-dist';
+import * as XLSX from 'xlsx';
 ```
+
+**Current lazy-loaded libraries in ConverterService**:
+- `xlsx` - Loaded for XLSX/ODS/CSV conversions
+- `marked` - Loaded for Markdown → HTML
+- `turndown` - Loaded for HTML → Markdown
+- `yaml` - Loaded for YAML conversions
+- `fast-xml-parser` - Loaded for XML conversions
+- `pdfjs-dist` - Loaded for PDF reading
 
 ### Memory Management
 - Large images should be resized before processing
 - PDF multi-page rendering is memory intensive - process page by page
 - Clear canvas contexts after use to free memory
+- **Always revoke Object URLs** after use to prevent memory leaks:
+  ```typescript
+  const url = URL.createObjectURL(blob);
+  // Use url...
+  URL.revokeObjectURL(url); // CRITICAL: prevents memory leak
+  ```
+- Use `FileReader` efficiently - avoid creating multiple instances unnecessarily
 
 ## Configuration Files
 
@@ -151,10 +201,22 @@ Available settings:
 
 Conversion capabilities are defined in `src/app/core/models/conversion-format.ts`. Key points:
 
-- **Full support**: TXT, MD, HTML, CSV, JSON, XLSX, PDF, PNG/JPEG/WEBP conversions
-- **Limited support**: ODS (read works, write requires SheetJS Pro)
-- **PDF to text**: Extraction only, no formatting preservation
-- **No support**: DOCX, DOC, ODT, RTF (require backend or commercial libraries)
+### Fully Supported Formats (15+)
+- **Text formats**: TXT, Markdown (MD), HTML, RTF
+- **Data formats**: CSV, JSON, XLSX, ODS, YAML, XML, Base64
+- **Document formats**: PDF (creation + extraction), EPUB
+- **Image formats**: PNG, JPEG, WEBP
+
+### Format-Specific Notes
+- **RTF**: Browser-native implementation, HTML ↔ RTF only (no direct text extraction)
+- **ODS**: Read/write supported (limited to SheetJS OSS features)
+- **PDF**: Creation from all formats, text extraction only (no formatting preservation)
+- **EPUB**: Full EPUB3 generation with metadata, TOC, and cover support
+- **Base64**: Encode/decode for all supported formats
+- **Multi-step conversions**: Automatic chaining (e.g., XML → JSON → YAML)
+
+### Not Supported
+- **DOCX, DOC, ODT**: Require backend or commercial libraries (Office Open XML complexity)
 
 ## Progressive Web App Strategy
 
@@ -241,6 +303,176 @@ this.parentSub = observable1$.subscribe(() => {
 ```
 
 4. **Services with Subscriptions** - Services must implement `OnDestroy` if they create subscriptions or timers that need cleanup
+
+5. **Object URL Cleanup** - Always revoke URLs created with `URL.createObjectURL()`:
+```typescript
+export class ImageService {
+  async convertImage(file: File): Promise<Blob> {
+    const url = URL.createObjectURL(file);
+
+    // Add timeout cleanup as safety net
+    const timeoutId = window.setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 30000); // 30 second fallback
+
+    try {
+      const result = await this.processImage(url);
+      return result;
+    } finally {
+      clearTimeout(timeoutId);
+      URL.revokeObjectURL(url); // Clean up immediately
+    }
+  }
+}
+```
+
+6. **FileReader Optimization** - Avoid creating duplicate FileReader instances:
+```typescript
+// Bad - creates multiple FileReader instances
+async function readFile(file: File) {
+  const reader1 = new FileReader();
+  const encoding = await detectEncoding(file); // Creates another FileReader internally
+  const reader2 = new FileReader(); // Duplicate!
+  // ...
+}
+
+// Good - reuse or coordinate FileReader usage
+async function readFile(file: File) {
+  const encoding = await detectEncoding(file); // Uses FileReader
+  const text = await file.text(); // Use File API instead of creating another FileReader
+  // ...
+}
+```
+
+## Conversion Services Architecture
+
+### Service Responsibilities
+
+Each conversion service handles specific format conversions:
+
+#### Base64Service (`base64.service.ts`)
+- **Purpose**: Encode/decode any file to/from Base64
+- **Dependencies**: None (browser-native)
+- **Key methods**: `encodeFile()`, `decodeBase64()`
+- **Notes**: Uses `FileReader.readAsDataURL()` and `atob()`/`btoa()`
+
+#### CsvService (`csv.service.ts`)
+- **Purpose**: Advanced CSV parsing and generation
+- **Dependencies**: `papaparse`
+- **Key features**:
+  - Automatic encoding detection (UTF-8, UTF-16, ISO-8859-1)
+  - Delimiter auto-detection
+  - Header row detection
+- **Key methods**: `parseCSV()`, `generateCSV()`
+
+#### EpubService (`epub.service.ts`)
+- **Purpose**: Generate EPUB3 files from HTML/Markdown
+- **Dependencies**: `jszip`, `marked`
+- **Key features**:
+  - Full EPUB3 spec compliance
+  - Table of contents generation
+  - Metadata support (title, author, language)
+  - Cover image support
+- **Key methods**: `createEpub()`
+
+#### HtmlService (`html.service.ts`)
+- **Purpose**: HTML processing and sanitization
+- **Dependencies**: `dompurify`, `juice` (for inline CSS)
+- **Key features**:
+  - XSS protection via DOMPurify
+  - CSS inlining for email-safe HTML
+  - HTML minification
+- **Key methods**: `sanitizeHtml()`, `inlineCSS()`, `minifyHtml()`
+
+#### RtfService (`rtf.service.ts`)
+- **Purpose**: HTML ↔ RTF conversion
+- **Dependencies**: None (custom browser-native implementation)
+- **Key features**:
+  - Supports: bold, italic, underline, headings (h1-h6), lists, links, paragraphs
+  - Uses DOMParser for HTML parsing
+  - Pure TypeScript implementation
+- **Key methods**: `htmlToRtf()`, `rtfToHtml()`
+- **Note**: Custom implementation created to avoid Node.js dependencies (replaced html-to-rtf, saved 80 npm packages)
+
+#### XmlService (`xml.service.ts`)
+- **Purpose**: XML ↔ JSON bidirectional conversion
+- **Dependencies**: `fast-xml-parser`
+- **Key features**:
+  - Preserves attributes and text nodes
+  - Configurable parsing options
+- **Key methods**: `xmlToJson()`, `jsonToXml()`
+
+#### YamlService (`yaml.service.ts`)
+- **Purpose**: YAML ↔ JSON bidirectional conversion
+- **Dependencies**: `yaml` (by eemeli)
+- **Key features**:
+  - Full YAML 1.2 spec support
+  - Type preservation (dates, numbers, booleans)
+  - Comments preservation in round-trip
+- **Key methods**: `yamlToJson()`, `jsonToYaml()`
+
+### Converter Service Pattern
+
+The `ConverterService` (`converter.service.ts`) orchestrates all conversions:
+
+```typescript
+export class ConverterService {
+  // Lazy-loaded library caches
+  private xlsxCache?: typeof import('xlsx');
+  private markedCache?: typeof import('marked');
+
+  // Helper methods for lazy loading
+  private async getXLSX() {
+    if (!this.xlsxCache) {
+      this.xlsxCache = await import('xlsx');
+    }
+    return this.xlsxCache;
+  }
+
+  // Main conversion method
+  async convert(file: File, targetFormat: ConversionFormat): Promise<ConversionResult> {
+    const sourceFormat = this.detectFormat(file);
+
+    // Direct conversion if supported
+    if (this.canConvertDirect(sourceFormat, targetFormat)) {
+      return this.convertDirect(file, sourceFormat, targetFormat);
+    }
+
+    // Multi-step conversion chain
+    return this.convertMultiStep(file, sourceFormat, targetFormat);
+  }
+}
+```
+
+### Adding New Format Support
+
+To add a new format:
+
+1. **Update ConversionFormat enum** (`conversion-format.ts`):
+   ```typescript
+   export enum ConversionFormat {
+     // ...existing formats
+     NEW_FORMAT = 'NEW_FORMAT'
+   }
+   ```
+
+2. **Create service** (if complex logic needed):
+   ```typescript
+   @Injectable({ providedIn: 'root' })
+   export class NewFormatService {
+     async convertFrom(data: string): Promise<string> { /* ... */ }
+     async convertTo(data: string): Promise<string> { /* ... */ }
+   }
+   ```
+
+3. **Update ConverterService**:
+   - Add conversion logic in `convertDirect()`
+   - Update `canConvertDirect()` matrix
+   - Add to `detectFormat()` if needed
+
+4. **Add tests**:
+   - Unit tests in `new-format.service.spec.ts`
+   - E2E tests in `cypress/e2e/new-format.cy.ts`
 
 ## Testing
 
