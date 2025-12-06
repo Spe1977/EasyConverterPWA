@@ -10,23 +10,109 @@ import { ConversionFormat } from '@core/models/conversion-format';
 })
 export class ImageService {
   /**
-   * Converte un'immagine in un formato diverso
+   * Converte un'immagine in un formato diverso con qualità adattiva opzionale
    * @param file File immagine originale
    * @param targetFormat Formato di destinazione
-   * @param quality Qualità output (0-100)
+   * @param quality Qualità output (0-100), se null usa qualità adattiva
+   * @param preserveExif Se true, preserva metadati EXIF (solo JPEG)
    * @returns Blob dell'immagine convertita
    */
   async convertImage(
     file: File,
     targetFormat: ConversionFormat,
-    quality: number = 85
+    quality: number | null = 85,
+    preserveExif: boolean = false
   ): Promise<Blob> {
     const img = await this.loadImage(file);
     const canvas = this.createCanvas(img.width, img.height);
     const ctx = canvas.getContext('2d')!;
     ctx.drawImage(img, 0, 0);
 
-    return this.canvasToBlob(canvas, targetFormat, quality);
+    // Calcola qualità adattiva se non specificata
+    const finalQuality = quality ?? this.calculateAdaptiveQuality(file.size);
+
+    let blob = await this.canvasToBlob(canvas, targetFormat, finalQuality);
+
+    // Preserva EXIF se richiesto (solo JPEG)
+    if (preserveExif && targetFormat === ConversionFormat.JPEG) {
+      blob = await this.preserveExifData(file, blob);
+    }
+
+    return blob;
+  }
+
+  /**
+   * Calcola qualità adattiva basata sulla dimensione del file originale
+   * File grandi usano qualità più bassa per ridurre dimensione
+   * @param fileSize Dimensione file in bytes
+   * @returns Qualità ottimale (0-100)
+   */
+  private calculateAdaptiveQuality(fileSize: number): number {
+    const MB = 1024 * 1024;
+
+    if (fileSize > 2 * MB) {
+      // File > 2MB: qualità 70%
+      return 70;
+    } else if (fileSize > 500 * 1024 && fileSize <= 2 * MB) {
+      // File 500KB-2MB: qualità 85%
+      return 85;
+    } else {
+      // File < 500KB: qualità 95%
+      return 95;
+    }
+  }
+
+  /**
+   * Preserva metadati EXIF da un'immagine sorgente a un'immagine di destinazione
+   * @param sourceFile File immagine originale con EXIF
+   * @param targetBlob Blob immagine convertita
+   * @returns Blob con EXIF preservati
+   */
+  private async preserveExifData(sourceFile: File, targetBlob: Blob): Promise<Blob> {
+    try {
+      // Import piexifjs dinamicamente
+      const piexif = await import('piexifjs') as any;
+
+      // Leggi EXIF da source
+      const sourceArrayBuffer = await sourceFile.arrayBuffer();
+      const sourceDataUrl = this.arrayBufferToDataURL(sourceArrayBuffer, sourceFile.type);
+      let exifObj: any;
+
+      try {
+        exifObj = piexif.load(sourceDataUrl);
+      } catch (e) {
+        // Nessun EXIF nel file sorgente, ritorna blob originale
+        return targetBlob;
+      }
+
+      // Leggi target blob
+      const targetArrayBuffer = await targetBlob.arrayBuffer();
+      const targetDataUrl = this.arrayBufferToDataURL(targetArrayBuffer, targetBlob.type);
+
+      // Inserisci EXIF nel target
+      const exifBytes = piexif.dump(exifObj);
+      const newDataUrl = piexif.insert(exifBytes, targetDataUrl);
+
+      // Converti back to Blob
+      return this.dataURLtoBlob(newDataUrl);
+    } catch (error) {
+      // Se fallisce, ritorna blob originale (senza EXIF)
+      console.warn('Failed to preserve EXIF data:', error);
+      return targetBlob;
+    }
+  }
+
+  /**
+   * Converte ArrayBuffer in Data URL
+   */
+  private arrayBufferToDataURL(buffer: ArrayBuffer, mimeType: string): string {
+    const bytes = new Uint8Array(buffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]);
+    }
+    const base64 = btoa(binary);
+    return `data:${mimeType};base64,${base64}`;
   }
 
   /**
@@ -172,12 +258,20 @@ export class ImageService {
       const img = new Image();
       const url = URL.createObjectURL(file);
 
+      // Timeout cleanup fallback per prevenire memory leak
+      const timeoutId = window.setTimeout(() => {
+        URL.revokeObjectURL(url);
+        reject(new Error('Image load timeout'));
+      }, 30000); // 30 secondi timeout
+
       img.onload = () => {
+        clearTimeout(timeoutId);
         URL.revokeObjectURL(url);
         resolve(img);
       };
 
       img.onerror = () => {
+        clearTimeout(timeoutId);
         URL.revokeObjectURL(url);
         reject(new Error('Failed to load image'));
       };
