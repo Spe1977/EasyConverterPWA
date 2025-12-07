@@ -78,8 +78,22 @@ import { OcrService } from '@core/services/ocr.service';
 **HtmlService** (`html.service.ts`)
 - XSS protection via DOMPurify sanitization
 - CSS inlining for email-safe HTML (using juice)
-- HTML minification
-- Configurable sanitization rules
+- HTML minification (browser-compatible)
+- HTML validation (security risk detection)
+- Complete email processing pipeline (sanitize → inline CSS → minify)
+- Text extraction from HTML (strip tags safely)
+- HTML utilities: escape/unescape, wrap text, beautify formatting
+- Configurable sanitization rules and options
+
+**PdfService** (`pdf.service.ts`)
+- Enhanced text extraction with formatting preservation
+- New parameter: `extractTextFromPdf(file, preserveFormatting?)`
+  - `preserveFormatting: false` - Simple text concatenation (faster)
+  - `preserveFormatting: true` - Preserves paragraphs, indentation, lists (default)
+- Smart line/paragraph detection using Y-coordinates analysis
+- Automatic gap detection for proper word/line spacing
+- Configurable line height threshold for paragraph breaks
+- Preserves document structure (headings, lists, indentation)
 
 **RtfService** (`rtf.service.ts`)
 - Custom browser-native implementation

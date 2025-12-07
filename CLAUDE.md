@@ -381,8 +381,43 @@ Each conversion service handles specific format conversions:
 - **Key features**:
   - XSS protection via DOMPurify
   - CSS inlining for email-safe HTML
-  - HTML minification
-- **Key methods**: `sanitizeHtml()`, `inlineCSS()`, `minifyHtml()`
+  - HTML minification (browser-compatible)
+  - HTML validation (security risks detection)
+  - Text extraction (strip HTML tags)
+  - HTML utilities (escape/unescape, wrap, beautify)
+- **Key methods**:
+  - `sanitize()` - Sanitize HTML with configurable options
+  - `inlineCss()` - Convert external/internal CSS to inline styles
+  - `minifyHtml()` - Minify HTML (remove whitespace, comments)
+  - `processForEmail()` - Complete pipeline: sanitize → inline CSS → minify
+  - `validateHtml()` - Detect security risks and common issues
+  - `extractText()` - Extract plain text from HTML
+  - `wrapInHtml()` - Wrap text in HTML document structure
+  - `escapeHtml()` / `unescapeHtml()` - Escape/unescape HTML entities
+  - `beautifyHtml()` - Format HTML with indentation
+
+#### PdfService (`pdf.service.ts`)
+- **Purpose**: PDF creation and advanced text extraction
+- **Dependencies**: `pdf-lib` (creation), `pdfjs-dist` (extraction, lazy-loaded)
+- **Key features**:
+  - Create PDF from text with custom formatting
+  - Create PDF from images (single or multiple)
+  - **Enhanced text extraction with formatting preservation**
+  - PDF page rendering to canvas/images
+  - PDF metadata extraction
+- **Key methods**:
+  - `createPdfFromText()` - Generate PDF from text string
+  - `createPdfFromImage()` - Generate PDF from image file
+  - `extractTextFromPdf(file, preserveFormatting?)` - Extract text with optional formatting
+    - `preserveFormatting: false` - Simple concatenation (faster)
+    - `preserveFormatting: true` - Preserves paragraphs, indentation, lists (default)
+  - `convertPdfPageToImage()` - Render PDF page to image
+- **Advanced Text Extraction**:
+  - Smart line/paragraph detection using Y-coordinates analysis
+  - Automatic gap detection for proper word/line spacing
+  - Configurable line height threshold for paragraph breaks
+  - Preserves document structure (headings, lists, indentation)
+- **Note**: Text extraction uses Mozilla PDF.js (lazy-loaded ~400 KB)
 
 #### RtfService (`rtf.service.ts`)
 - **Purpose**: HTML ↔ RTF conversion
