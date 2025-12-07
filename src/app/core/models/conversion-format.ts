@@ -6,12 +6,20 @@ export enum ConversionFormat {
   TXT = 'txt',
   MD = 'md',
   HTML = 'html',
+  RTF = 'rtf',
 
   // Fogli di calcolo e dati
   CSV = 'csv',
   JSON = 'json',
   XLSX = 'xlsx',
   ODS = 'ods',
+
+  // Formati dati strutturati
+  YAML = 'yaml',
+  XML = 'xml',
+
+  // Encoding
+  BASE64 = 'base64',
 
   // PDF
   PDF = 'pdf',
@@ -34,7 +42,7 @@ export interface FormatInfo {
   label: string;
   mimeType: string;
   extensions: string[];
-  category: 'document' | 'spreadsheet' | 'pdf' | 'image' | 'ebook';
+  category: 'document' | 'spreadsheet' | 'data' | 'encoding' | 'pdf' | 'image' | 'ebook';
   icon: string;
 }
 
@@ -66,6 +74,14 @@ export const SUPPORTED_FORMATS: FormatInfo[] = [
     extensions: ['.html', '.htm'],
     category: 'document',
     icon: 'code',
+  },
+  {
+    format: ConversionFormat.RTF,
+    label: 'Rich Text',
+    mimeType: 'application/rtf',
+    extensions: ['.rtf'],
+    category: 'document',
+    icon: 'document-text',
   },
 
   // Fogli di calcolo
@@ -100,6 +116,34 @@ export const SUPPORTED_FORMATS: FormatInfo[] = [
     extensions: ['.ods'],
     category: 'spreadsheet',
     icon: 'document',
+  },
+
+  // Formati dati strutturati
+  {
+    format: ConversionFormat.YAML,
+    label: 'YAML',
+    mimeType: 'application/x-yaml',
+    extensions: ['.yaml', '.yml'],
+    category: 'data',
+    icon: 'code-slash',
+  },
+  {
+    format: ConversionFormat.XML,
+    label: 'XML',
+    mimeType: 'application/xml',
+    extensions: ['.xml'],
+    category: 'data',
+    icon: 'code-working',
+  },
+
+  // Encoding
+  {
+    format: ConversionFormat.BASE64,
+    label: 'Base64',
+    mimeType: 'text/plain',
+    extensions: ['.txt', '.base64'],
+    category: 'encoding',
+    icon: 'lock-closed',
   },
 
   // PDF

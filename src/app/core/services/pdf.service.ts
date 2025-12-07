@@ -125,11 +125,12 @@ export class PdfService {
   }
 
   /**
-   * Estrae testo da un PDF (lazy load pdfjs-dist)
+   * Estrae testo da un PDF con formattazione preservata (lazy load pdfjs-dist)
    * @param file File PDF
+   * @param preserveFormatting Se true, preserva paragrafi, indentazione e liste
    * @returns Testo estratto
    */
-  async extractTextFromPdf(file: File): Promise<string> {
+  async extractTextFromPdf(file: File, preserveFormatting: boolean = true): Promise<string> {
     // Lazy load pdfjs-dist solo quando necessario
     const pdfjsLib = await import('pdfjs-dist');
 
@@ -145,24 +146,134 @@ export class PdfService {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageText = textContent.items.map((item: any) => item.str).join(' ');
-      fullText += pageText + '\n\n';
+
+      if (!preserveFormatting) {
+        // Modalità semplice: concatena tutto il testo
+        const pageText = textContent.items.map((item: any) => item.str).join(' ');
+        fullText += pageText + '\n\n';
+      } else {
+        // Modalità avanzata: preserva formattazione
+        const pageText = this.extractFormattedText(textContent);
+        fullText += pageText + '\n\n';
+      }
     }
 
     return fullText.trim();
   }
 
   /**
-   * Converte una pagina PDF in immagine (canvas)
+   * Estrae testo preservando formattazione, paragrafi e liste
+   * Analizza le coordinate Y per identificare righe e paragrafi
+   */
+  private extractFormattedText(textContent: any): string {
+    const items = textContent.items;
+    if (!items || items.length === 0) {
+      return '';
+    }
+
+    // Raggruppa items per riga in base alla coordinata Y
+    interface TextLine {
+      y: number;
+      items: Array<{ x: number; str: string; width: number }>;
+    }
+
+    const lines: TextLine[] = [];
+    const yThreshold = 2; // Tolleranza per considerare items sulla stessa riga
+
+    for (const item of items) {
+      const y = item.transform[5]; // coordinata Y
+      const x = item.transform[4]; // coordinata X
+      const str = item.str;
+      const width = item.width || 0;
+
+      // Trova la riga esistente o creane una nuova
+      const existingLine = lines.find((line) => Math.abs(line.y - y) < yThreshold);
+
+      if (existingLine) {
+        existingLine.items.push({ x, str, width });
+      } else {
+        lines.push({
+          y,
+          items: [{ x, str, width }],
+        });
+      }
+    }
+
+    // Ordina righe dall'alto verso il basso (Y decrescente in PDF)
+    lines.sort((a, b) => b.y - a.y);
+
+    // Ordina items in ogni riga da sinistra a destra
+    lines.forEach((line) => {
+      line.items.sort((a, b) => a.x - b.x);
+    });
+
+    // Costruisci il testo con formattazione
+    let formattedText = '';
+    let prevY: number | null = null;
+    const lineHeightThreshold = 15; // Soglia per identificare nuovi paragrafi
+
+    for (const line of lines) {
+      // Concatena items della riga
+      let lineText = '';
+      let prevX = 0;
+
+      for (const item of line.items) {
+        // Aggiungi spazio se c'è un gap significativo tra items
+        const gap = item.x - prevX;
+        if (prevX > 0 && gap > 10) {
+          lineText += ' ';
+        }
+
+        lineText += item.str;
+        prevX = item.x + item.width;
+      }
+
+      lineText = lineText.trim();
+      if (!lineText) {
+        continue;
+      }
+
+      // Rileva indentazione (per liste e sottoparagrafi)
+      const firstX = line.items[0]?.x || 0;
+      const isIndented = firstX > 50; // Indentazione significativa
+
+      // Rileva caratteri di lista
+      const listMarkers = /^[-•*◦▪▫→\d+\.]/;
+      const isList = listMarkers.test(lineText);
+
+      // Aggiungi newline extra per nuovi paragrafi
+      if (prevY !== null) {
+        const lineGap = prevY - line.y;
+        if (lineGap > lineHeightThreshold) {
+          formattedText += '\n'; // Doppio newline per nuovo paragrafo
+        }
+      }
+
+      // Aggiungi indentazione se necessaria
+      if (isIndented && !isList) {
+        formattedText += '  '; // 2 spazi per indentazione
+      }
+
+      formattedText += lineText + '\n';
+      prevY = line.y;
+    }
+
+    return formattedText;
+  }
+
+  /**
+   * Converte una pagina PDF in immagine (canvas) con DPI adattivo
    * @param file File PDF
    * @param pageNumber Numero pagina (1-based)
-   * @param scale Scala di rendering (default 2.0 per alta qualità)
+   * @param scale Scala di rendering (se null, calcola automaticamente DPI adattivo)
+   * @param targetWidth Larghezza target in pixel per DPI adattivo
    * @returns Blob dell'immagine
    */
   async convertPdfPageToImage(
     file: File,
     pageNumber: number = 1,
-    scale: number = 2.0
+    scale: number | null = null,
+    targetWidth: number = 1920
   ): Promise<Blob> {
     const pdfjsLib = await import('pdfjs-dist');
     (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
@@ -171,7 +282,10 @@ export class PdfService {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
     const page = await pdf.getPage(pageNumber);
 
-    const viewport = page.getViewport({ scale });
+    // Se scale non è specificato, calcola DPI adattivo
+    const finalScale = scale ?? this.calculateAdaptiveScale(page, targetWidth);
+
+    const viewport = page.getViewport({ scale: finalScale });
     const canvas = document.createElement('canvas');
     const context = canvas.getContext('2d')!;
 
@@ -196,12 +310,38 @@ export class PdfService {
   }
 
   /**
-   * Converte tutte le pagine di un PDF in immagini
+   * Calcola scale ottimale in base alle dimensioni della pagina PDF
+   * Adatta il DPI per ottenere immagini di alta qualità senza sprecare memoria
+   * @param page Pagina PDF
+   * @param targetWidth Larghezza target in pixel
+   * @returns Scale ottimale
+   */
+  private calculateAdaptiveScale(page: any, targetWidth: number): number {
+    const viewport = page.getViewport({ scale: 1.0 });
+    const pageWidth = viewport.width;
+
+    // Calcola scale per raggiungere la larghezza target
+    const scale = targetWidth / pageWidth;
+
+    // Limita lo scale tra 1.0 e 4.0 per evitare immagini troppo piccole o troppo grandi
+    const minScale = 1.0;
+    const maxScale = 4.0;
+
+    return Math.max(minScale, Math.min(scale, maxScale));
+  }
+
+  /**
+   * Converte tutte le pagine di un PDF in immagini con DPI adattivo
    * @param file File PDF
-   * @param scale Scala di rendering
+   * @param scale Scala di rendering (se null, usa DPI adattivo)
+   * @param targetWidth Larghezza target in pixel per DPI adattivo
    * @returns Array di blob immagini
    */
-  async convertPdfToImages(file: File, scale: number = 2.0): Promise<Blob[]> {
+  async convertPdfToImages(
+    file: File,
+    scale: number | null = null,
+    targetWidth: number = 1920
+  ): Promise<Blob[]> {
     const pdfjsLib = await import('pdfjs-dist');
     (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
 
@@ -211,7 +351,7 @@ export class PdfService {
     const images: Blob[] = [];
 
     for (let i = 1; i <= pdf.numPages; i++) {
-      const image = await this.convertPdfPageToImage(file, i, scale);
+      const image = await this.convertPdfPageToImage(file, i, scale, targetWidth);
       images.push(image);
     }
 

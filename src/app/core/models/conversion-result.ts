@@ -30,6 +30,12 @@ export interface ConversionOptions {
   scale?: number; // Scala per rendering
   pageNumbers?: number[]; // Pagine specifiche da convertire
   compression?: boolean; // Comprimi output
+  // HTML options
+  htmlSanitize?: boolean; // Sanitize HTML (XSS protection)
+  htmlInlineCss?: boolean; // Inline CSS for emails
+  htmlMinify?: boolean; // Minify HTML output
+  // Image options
+  preserveExif?: boolean; // Preserve EXIF metadata in images
   [key: string]: any;
 }
 

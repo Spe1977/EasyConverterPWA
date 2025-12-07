@@ -1,4 +1,4 @@
-import { NgModule, isDevMode } from '@angular/core';
+import { NgModule, isDevMode, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
 
@@ -8,6 +8,18 @@ import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { UpdateNotificationComponent } from '@shared/components/update-notification/update-notification.component';
+import { PwaUpdateService } from '@core/services/pwa-update.service';
+
+/**
+ * Initialize PWA update checking on app startup
+ * This runs once when the app bootstraps, preventing memory leaks
+ * from component lifecycle subscriptions
+ */
+export function initializePwaUpdates(pwaService: PwaUpdateService) {
+  return () => {
+    pwaService.initializeUpdateChecking();
+  };
+}
 
 @NgModule({
   declarations: [AppComponent],
@@ -23,7 +35,15 @@ import { UpdateNotificationComponent } from '@shared/components/update-notificat
       registrationStrategy: 'registerWhenStable:30000',
     }),
   ],
-  providers: [{ provide: RouteReuseStrategy, useClass: IonicRouteStrategy }],
+  providers: [
+    { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
+    {
+      provide: APP_INITIALIZER,
+      useFactory: initializePwaUpdates,
+      deps: [PwaUpdateService],
+      multi: true,
+    },
+  ],
   bootstrap: [AppComponent],
 })
 export class AppModule {}

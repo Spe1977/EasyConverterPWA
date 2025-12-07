@@ -1,5 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { PwaUpdateService } from '@core/services/pwa-update.service';
+import { Component } from '@angular/core';
 
 @Component({
   selector: 'app-root',
@@ -7,11 +6,7 @@ import { PwaUpdateService } from '@core/services/pwa-update.service';
   styleUrls: ['app.component.scss'],
   standalone: false,
 })
-export class AppComponent implements OnInit {
-  private readonly pwaUpdateService = inject(PwaUpdateService);
-
-  ngOnInit(): void {
-    // Initialize PWA update checking
-    this.pwaUpdateService.initializeUpdateChecking();
-  }
+export class AppComponent {
+  // PWA update checking is now initialized via APP_INITIALIZER in app.module.ts
+  // This prevents memory leaks from component lifecycle subscriptions
 }

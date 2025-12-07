@@ -348,7 +348,8 @@ describe('ConverterService', () => {
       expect(imageServiceSpy.convertImage).toHaveBeenCalledWith(
         jasmine.any(File),
         ConversionFormat.JPEG,
-        90
+        90,
+        false // preserveExif default
       );
     });
 
@@ -362,7 +363,8 @@ describe('ConverterService', () => {
       expect(imageServiceSpy.convertImage).toHaveBeenCalledWith(
         jasmine.any(File),
         ConversionFormat.JPEG,
-        85
+        null, // quality adaptive
+        false // preserveExif default
       );
     });
   });
