@@ -262,15 +262,28 @@ Lazy loading:        474 KB spostati da eager a on-demand
 2. ✅ Performance audit post-optimization
 3. ⚠️ Cross-browser testing (rimandato a testing manuale)
 
-### 📋 Sprint 3 - PROSSIMO (1 giorno)
-1. Aggiornamento documentazione (README.md, CLAUDE.md)
-2. Changelog e release notes
-3. Preparazione release v2.0.0
-4. Cross-browser testing manuale (RTF su Firefox/Safari)
+### ✅ Sprint 3 - COMPLETATO (2025-12-07)
+1. ✅ Aggiornamento documentazione (README.md, CLAUDE.md, CHANGELOG.md)
+   - CLAUDE.md: Aggiunte sezioni HtmlService e PdfService complete
+   - CHANGELOG.md: Espanse features HtmlService e PdfService
+   - README.md: Già aggiornato con tutti i formati
+2. ✅ Changelog e release notes (CHANGELOG.md v2.0.0 completo)
+3. ✅ Preparazione release v2.0.0
+   - 2 commit creati: a4095a7 (features), 29c67db (docs)
+   - Build production: 10.7s ✅
+   - Test: 53/53 passing ✅
+4. ⚠️ Cross-browser testing manuale (rimandato, richiede testing manuale utente)
+
+---
+
+### 🎯 Sprint 4 - RELEASE (opzionale)
+1. Tag release v2.0.0 (git tag)
+2. Cross-browser testing manuale (Firefox, Safari)
+3. Deploy su hosting (Firebase, Netlify, Vercel)
 
 ---
 
 **Documento creato**: 2025-10-30
-**Ultimo aggiornamento**: 2025-12-06
+**Ultimo aggiornamento**: 2025-12-07
 **Autore**: Claude Code
-**Versione**: 2.0.0-beta
+**Versione**: 2.0.0 (RELEASE READY)
