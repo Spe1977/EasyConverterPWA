@@ -68,3 +68,13 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Testing
+/test-results
+/playwright-report
+/cypress/screenshots
+/cypress/videos
+
+# Temporary screenshots
+Screen.png
+WD.png
