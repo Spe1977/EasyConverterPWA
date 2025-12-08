@@ -47,6 +47,24 @@ export default defineConfig({
         serviceWorkers: 'allow',
       },
     },
+
+    {
+      name: 'firefox',
+      use: {
+        ...devices['Desktop Firefox'],
+        // Enable Service Workers
+        serviceWorkers: 'allow',
+      },
+    },
+
+    {
+      name: 'webkit',
+      use: {
+        ...devices['Desktop Safari'],
+        // Enable Service Workers
+        serviceWorkers: 'allow',
+      },
+    },
   ],
 
   /* Run your local dev server before starting the tests */
