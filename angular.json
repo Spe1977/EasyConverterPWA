@@ -42,6 +42,16 @@
                 "output": "/"
               },
               {
+                "glob": "_headers",
+                "input": "src/assets",
+                "output": "/"
+              },
+              {
+                "glob": "_redirects",
+                "input": "src/assets",
+                "output": "/"
+              },
+              {
                 "glob": "**/*.svg",
                 "input": "node_modules/ionicons/dist/ionicons/svg",
                 "output": "./svg"
@@ -118,10 +128,7 @@
           "builder": "@angular-devkit/build-angular:karma",
           "options": {
             "main": "src/test.ts",
-            "polyfills": [
-              "src/polyfills.ts",
-              "@angular/localize/init"
-            ],
+            "polyfills": ["src/polyfills.ts", "@angular/localize/init"],
             "tsConfig": "tsconfig.spec.json",
             "karmaConfig": "karma.conf.js",
             "inlineStyleLanguage": "scss",
@@ -133,6 +140,16 @@
               },
               {
                 "glob": "manifest.webmanifest",
+                "input": "src/assets",
+                "output": "/"
+              },
+              {
+                "glob": "_headers",
+                "input": "src/assets",
+                "output": "/"
+              },
+              {
+                "glob": "_redirects",
                 "input": "src/assets",
                 "output": "/"
               },
@@ -160,19 +177,14 @@
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
-            "lintFilePatterns": [
-              "src/**/*.ts",
-              "src/**/*.html"
-            ]
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
           }
         }
       }
     }
   },
   "cli": {
-    "schematicCollections": [
-      "@ionic/angular-toolkit"
-    ],
+    "schematicCollections": ["@ionic/angular-toolkit"],
     "analytics": "bfa4adde-29e8-4cc5-a4be-a9dbf7de1f4a"
   },
   "schematics": {

@@ -1,0 +1,59 @@
+# Cloudflare Pages Headers Configuration
+# Optimized for EasyConverter PWA
+
+# Service Worker - no cache (always fresh)
+/ngsw-worker.js
+  Cache-Control: no-cache, no-store, must-revalidate
+  X-Robots-Tag: noindex
+
+# Service Worker config
+/ngsw.json
+  Cache-Control: no-cache, no-store, must-revalidate
+
+# Security headers for all pages
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  X-XSS-Protection: 1; mode=block
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), interest-cohort=()
+
+# Cache JavaScript bundles (immutable, content-hashed)
+/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache CSS files (immutable, content-hashed)
+/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache fonts (immutable)
+/*.woff2
+  Cache-Control: public, max-age=31536000, immutable
+/*.woff
+  Cache-Control: public, max-age=31536000, immutable
+/*.ttf
+  Cache-Control: public, max-age=31536000, immutable
+
+# Cache images (1 year)
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpg
+  Cache-Control: public, max-age=31536000, immutable
+/*.jpeg
+  Cache-Control: public, max-age=31536000, immutable
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+/*.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+# PWA Manifest (cache for 1 day, can update frequently)
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400
+  Content-Type: application/manifest+json
+
+# Main HTML (no cache, always check for updates)
+/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Content-Type: text/html; charset=utf-8
