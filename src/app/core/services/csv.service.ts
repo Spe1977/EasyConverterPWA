@@ -215,26 +215,18 @@ export class CsvService {
 
   /**
    * Legge file come testo con encoding specificato
+   * Refactored to avoid multiple FileReader instances
    */
-  private readFileAsText(file: File, encoding?: string): Promise<string> {
+  private async readFileAsText(file: File, encoding?: string): Promise<string> {
+    // Auto-detect encoding if not specified
+    const finalEncoding = encoding || (await this.detectEncoding(file));
+
+    // Create single FileReader instance
     return new Promise((resolve, reject) => {
-      if (encoding) {
-        // Encoding specificato: usa direttamente
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsText(file, encoding);
-      } else {
-        // Auto-detect encoding prima di leggere
-        this.detectEncoding(file)
-          .then((detectedEncoding) => {
-            const reader = new FileReader();
-            reader.onload = () => resolve(reader.result as string);
-            reader.onerror = reject;
-            reader.readAsText(file, detectedEncoding);
-          })
-          .catch(reject);
-      }
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+      reader.readAsText(file, finalEncoding);
     });
   }
 

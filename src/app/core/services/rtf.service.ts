@@ -61,10 +61,20 @@ export class RtfService {
    * Converte un nodo DOM in RTF ricorsivamente
    * @param node Nodo DOM
    * @param options Opzioni di conversione
+   * @param depth Profondità corrente della ricorsione (per prevenire stack overflow)
    * @returns Contenuto RTF
    */
-  private convertNodeToRtf(node: Node, options: HtmlToRtfOptions = {}): string {
+  private convertNodeToRtf(node: Node, options: HtmlToRtfOptions = {}, depth: number = 0): string {
+    const MAX_DEPTH = 50; // Limite massimo di nesting
     let rtf = '';
+
+    // Previeni stack overflow con limite di profondità
+    if (depth > MAX_DEPTH) {
+      console.warn(
+        'RTF conversion: Maximum nesting depth exceeded. Truncating deeply nested content.'
+      );
+      return '';
+    }
 
     // Testo normale
     if (node.nodeType === Node.TEXT_NODE) {
@@ -77,10 +87,10 @@ export class RtfService {
       const element = node as HTMLElement;
       const tagName = element.tagName.toLowerCase();
 
-      // Converti i figli
+      // Converti i figli con profondità incrementata
       let childContent = '';
       for (let i = 0; i < element.childNodes.length; i++) {
-        childContent += this.convertNodeToRtf(element.childNodes[i], options);
+        childContent += this.convertNodeToRtf(element.childNodes[i], options, depth + 1);
       }
 
       // Formattazione basata sul tag

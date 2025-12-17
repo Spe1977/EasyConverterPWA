@@ -25,7 +25,12 @@ export class ImageService {
   ): Promise<Blob> {
     const img = await this.loadImage(file);
     const canvas = this.createCanvas(img.width, img.height);
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
+
     ctx.drawImage(img, 0, 0);
 
     // Calcola qualità adattiva se non specificata
@@ -133,7 +138,12 @@ export class ImageService {
     const { width, height } = this.calculateDimensions(img.width, img.height, maxWidth, maxHeight);
 
     const canvas = this.createCanvas(width, height);
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
+
     ctx.drawImage(img, 0, 0, width, height);
 
     // Usa il formato originale dell'immagine
@@ -161,7 +171,11 @@ export class ImageService {
   ): Promise<Blob> {
     const img = await this.loadImage(file);
     const canvas = this.createCanvas(width, height);
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
 
     ctx.drawImage(img, x, y, width, height, 0, 0, width, height);
 
@@ -185,7 +199,11 @@ export class ImageService {
         ? this.createCanvas(img.height, img.width)
         : this.createCanvas(img.width, img.height);
 
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
 
     // Muovi l'origine al centro del canvas
     ctx.translate(canvas.width / 2, canvas.height / 2);
@@ -209,7 +227,11 @@ export class ImageService {
   async toGrayscale(file: File, quality: number = 85): Promise<Blob> {
     const img = await this.loadImage(file);
     const canvas = this.createCanvas(img.width, img.height);
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
 
     ctx.drawImage(img, 0, 0);
 
@@ -239,7 +261,11 @@ export class ImageService {
   async adjustContrast(file: File, contrast: number, quality: number = 85): Promise<Blob> {
     const img = await this.loadImage(file);
     const canvas = this.createCanvas(img.width, img.height);
-    const ctx = canvas.getContext('2d')!;
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
 
     ctx.filter = `contrast(${100 + contrast}%)`;
     ctx.drawImage(img, 0, 0);

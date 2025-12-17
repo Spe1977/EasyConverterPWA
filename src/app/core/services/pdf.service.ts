@@ -287,7 +287,11 @@ export class PdfService {
 
     const viewport = page.getViewport({ scale: finalScale });
     const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d')!;
+    const context = canvas.getContext('2d');
+
+    if (!context) {
+      throw new Error('Unable to get 2D rendering context. Canvas may not be supported.');
+    }
 
     canvas.height = viewport.height;
     canvas.width = viewport.width;

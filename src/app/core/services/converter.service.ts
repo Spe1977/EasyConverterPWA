@@ -320,7 +320,11 @@ export class ConverterService {
       case ConversionFormat.TXT:
         // HTML -> TXT (strip tags)
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = content;
+        // Sanitize HTML to prevent XSS before parsing
+        const sanitized = this.htmlService.sanitize(content, {
+          allowedTags: [], // Strip all tags, keep only text
+        });
+        tempDiv.innerHTML = sanitized;
         const text = tempDiv.textContent || tempDiv.innerText || '';
         return new Blob([text], { type: 'text/plain' });
 
@@ -376,7 +380,11 @@ export class ConverterService {
       case ConversionFormat.TXT:
         // RTF -> HTML -> TXT
         const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = html;
+        // Sanitize HTML to prevent XSS before parsing
+        const sanitizedHtml = this.htmlService.sanitize(html, {
+          allowedTags: [], // Strip all tags, keep only text
+        });
+        tempDiv.innerHTML = sanitizedHtml;
         const text = tempDiv.textContent || tempDiv.innerText || '';
         return new Blob([text], { type: 'text/plain' });
 

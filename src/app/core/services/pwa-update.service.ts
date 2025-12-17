@@ -30,8 +30,11 @@ export class PwaUpdateService implements OnDestroy {
     // Check for updates every 6 hours
     const everyHours$ = interval(6 * 60 * 60 * 1000);
 
+    // Initialize subscription container first
+    this.updateCheckSubscription = new Subscription();
+
     // Store subscription for cleanup
-    this.updateCheckSubscription = appIsStable$.subscribe(() => {
+    const stableSub = appIsStable$.subscribe(() => {
       const intervalSub = everyHours$.subscribe(async () => {
         try {
           const updateFound = await this.swUpdate.checkForUpdate();
@@ -44,10 +47,12 @@ export class PwaUpdateService implements OnDestroy {
       });
 
       // Add nested subscription to parent for proper cleanup
-      if (this.updateCheckSubscription) {
-        this.updateCheckSubscription.add(intervalSub);
-      }
+      // Safe because updateCheckSubscription is initialized before subscribe
+      this.updateCheckSubscription!.add(intervalSub);
     });
+
+    // Add the stable subscription to parent
+    this.updateCheckSubscription.add(stableSub);
   }
 
   /**
