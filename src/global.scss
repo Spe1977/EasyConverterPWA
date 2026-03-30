@@ -37,21 +37,53 @@
 @import '@ionic/angular/css/palettes/dark.system.css';
 
 /**
- * Custom Mobile Optimizations
- * Improve tap/press states for better readability
+ * Custom Global Styles - EasyConverter Modern Design
  */
 
-// Improve button press states
+// Smooth scrolling
+* {
+  scroll-behavior: smooth;
+}
+
+// Better font rendering
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+// Custom scrollbar (WebKit browsers)
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--ion-color-light);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ion-color-medium);
+  border-radius: var(--radius-full);
+
+  &:hover {
+    background: var(--ion-color-primary);
+  }
+}
+
+// Improved button styles
 ion-button {
-  // Better contrast when pressed
+  --transition: all var(--transition-base);
+  font-weight: 600;
+  letter-spacing: 0.3px;
+
   &.ion-activated,
   &:active {
     --background: var(--ion-color-primary-shade);
     --color: white;
     opacity: 0.9;
+    transform: scale(0.98);
   }
 
-  // Outline buttons
   &[fill='outline'] {
     &.ion-activated,
     &:active {
@@ -60,20 +92,23 @@ ion-button {
       opacity: 1;
     }
   }
+
+  &[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
-// Improve card press states
+// Improved card styles
 ion-card {
   &[button='true'],
   &.ion-activatable {
     &.ion-activated,
     &:active {
-      // Lighter overlay instead of dark
-      --background: rgba(56, 128, 255, 0.05);
+      --background: rgba(79, 70, 229, 0.05);
       opacity: 0.95;
       transform: scale(0.98);
 
-      // Ensure text remains readable
       ion-card-title,
       ion-card-subtitle,
       h1,
@@ -91,23 +126,248 @@ ion-card {
   }
 }
 
-// Better tap feedback for clickable elements
+// Better tap feedback
 .file-picker-container,
-.feature-card {
-  -webkit-tap-highlight-color: rgba(56, 128, 255, 0.2);
-  tap-highlight-color: rgba(56, 128, 255, 0.2);
+.feature-card,
+.format-box {
+  -webkit-tap-highlight-color: rgba(79, 70, 229, 0.2);
+  tap-highlight-color: rgba(79, 70, 229, 0.2);
 
   &:active {
-    opacity: 0.9;
-    transform: scale(0.98);
+    opacity: 0.95;
   }
 }
 
-// Ensure ion-item press states are readable
+// Improved ion-item
 ion-item {
+  --transition: all var(--transition-fast);
+
   &.ion-activated,
   &:active {
-    --background: var(--ion-color-light-tint);
+    --background: var(--ion-color-light);
     --color: var(--ion-color-dark);
   }
+}
+
+// Enhanced ion-toolbar
+ion-toolbar {
+  --padding-top: var(--spacing-sm);
+  --padding-bottom: var(--spacing-sm);
+
+  ion-title {
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+}
+
+// Utility classes
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
+
+.shadow-xl {
+  box-shadow: var(--shadow-xl);
+}
+
+.shadow-primary {
+  box-shadow: var(--shadow-primary);
+}
+
+// Animation utility classes
+.animate-fade-in {
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.4s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// Focus styles
+*:focus-visible {
+  outline: 3px solid var(--ion-color-primary);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+// Selection styles
+::selection {
+  background: var(--ion-color-primary);
+  color: white;
+}
+
+.quality-feedback-card {
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(5, 150, 105, 0.18);
+  border-radius: var(--radius-md);
+  background: rgba(5, 150, 105, 0.08);
+
+  &.is-risk {
+    border-color: rgba(245, 158, 11, 0.28);
+    background: rgba(245, 158, 11, 0.12);
+  }
+
+  &.is-result {
+    margin-top: 0;
+  }
+
+  h3 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--ion-color-dark);
+  }
+
+  p {
+    margin: var(--spacing-sm) 0 0;
+    line-height: 1.5;
+    color: var(--ion-color-medium-shade);
+  }
+}
+
+.quality-feedback-header,
+.preview-header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.quality-feedback-header {
+  align-items: flex-start;
+}
+
+.preview-header {
+  align-items: baseline;
+  margin-bottom: var(--spacing-md);
+
+  h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+  }
+
+  span {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+  }
+}
+
+.quality-feedback-eyebrow {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--ion-color-medium);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.quality-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 var(--spacing-md);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ion-color-dark);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.file-preview {
+  margin-top: var(--spacing-lg);
+  padding-top: var(--spacing-lg);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.text-preview pre {
+  margin: 0;
+  max-height: 240px;
+  overflow: auto;
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.28);
+  color: white;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.image-preview img {
+  display: block;
+  width: 100%;
+  max-height: 280px;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.text-preview p,
+.image-preview p {
+  margin: var(--spacing-sm) 0 0;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+}
+
+.preview-unavailable {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.1);
+
+  ion-icon {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 20px;
+  }
+
+  p {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+  }
+}
+
+.result-meta {
+  font-size: 12px;
+  font-weight: 600;
 }

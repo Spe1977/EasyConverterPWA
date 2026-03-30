@@ -1,42 +1,74 @@
 .file-picker-container {
-  border: 2px dashed var(--ion-color-medium);
-  border-radius: 12px;
-  padding: 24px 16px;
+  border: 3px dashed var(--ion-color-medium);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl) var(--spacing-lg);
   text-align: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  min-height: 140px;
+  transition: all var(--transition-base);
+  min-height: 180px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--ion-color-light);
+  background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(79, 70, 229, 0.1) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: all var(--transition-slow);
+  }
 
   &:hover {
     border-color: var(--ion-color-primary);
-    background-color: var(--ion-color-primary-tint);
+    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+
+    &::before {
+      width: 400px;
+      height: 400px;
+    }
+
+    .upload-icon {
+      color: var(--ion-color-primary);
+      transform: scale(1.15);
+    }
   }
 
   &.dragging {
     border-color: var(--ion-color-success);
-    background-color: var(--ion-color-success-tint);
+    border-width: 4px;
+    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
     transform: scale(1.02);
+    box-shadow: var(--shadow-success);
 
     .upload-icon {
       color: var(--ion-color-success);
-      transform: scale(1.2);
+      transform: scale(1.3);
     }
   }
 }
 
 .upload-icon {
-  font-size: 48px;
-  color: var(--ion-color-medium);
-  margin-bottom: 12px;
-  transition: all 0.3s ease;
+  font-size: 64px;
+  color: var(--ion-color-primary);
+  margin-bottom: var(--spacing-md);
+  transition: all var(--transition-base);
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 4px 8px rgba(79, 70, 229, 0.2));
 
   &.active {
-    animation: bounce 0.5s ease infinite;
+    animation: bounce 0.6s ease infinite;
   }
 }
 
@@ -46,76 +78,109 @@
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-10px);
+    transform: translateY(-15px);
   }
 }
 
 .picker-text {
+  position: relative;
+  z-index: 1;
+
   h3 {
-    margin: 0 0 6px 0;
-    font-size: 16px;
-    font-weight: 600;
+    margin: 0 0 var(--spacing-sm) 0;
+    font-size: 18px;
+    font-weight: 700;
     color: var(--ion-color-dark);
+    letter-spacing: -0.3px;
   }
 
   p {
     margin: 0;
-    font-size: 13px;
+    font-size: 14px;
     color: var(--ion-color-medium);
-    line-height: 1.4;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .limits-hint {
+    display: inline-block;
+    margin-top: 4px;
   }
 }
 
 .selected-file {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  background-color: rgba(56, 128, 255, 0.12);
-  border-radius: 8px;
-  color: var(--ion-color-dark);
-  font-weight: 500;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background: var(--gradient-primary);
+  border-radius: var(--radius-md);
+  color: white;
+  font-weight: 600;
+  box-shadow: var(--shadow-primary);
+  position: relative;
+  z-index: 1;
+  animation: scaleIn 0.3s ease;
 
   ion-icon {
-    font-size: 24px;
-    color: var(--ion-color-primary);
+    font-size: 32px;
+    color: white;
   }
 
   span {
-    max-width: 300px;
+    max-width: 350px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 15px;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
 // Mobile responsive
 @media (max-width: 768px) {
   .file-picker-container {
-    padding: 20px 12px;
-    min-height: 120px;
+    padding: var(--spacing-xl) var(--spacing-md);
+    min-height: 160px;
   }
 
   .upload-icon {
-    font-size: 40px;
-    margin-bottom: 10px;
+    font-size: 52px;
+    margin-bottom: var(--spacing-sm);
   }
 
-  .picker-text h3 {
-    font-size: 15px;
-    margin: 0 0 4px 0;
-  }
+  .picker-text {
+    h3 {
+      font-size: 16px;
+      margin: 0 0 var(--spacing-xs) 0;
+    }
 
-  .picker-text p {
-    font-size: 11px;
+    p {
+      font-size: 12px;
+    }
   }
 
   .selected-file {
-    padding: 10px 16px;
+    padding: var(--spacing-sm) var(--spacing-md);
     font-size: 14px;
 
+    ion-icon {
+      font-size: 28px;
+    }
+
     span {
-      max-width: 200px;
+      max-width: 220px;
+      font-size: 14px;
     }
   }
 }

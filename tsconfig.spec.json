@@ -3,23 +3,10 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "./out-tsc/spec",
-    "moduleResolution": "node",
-    "types": [
-      "jasmine",
-      "@angular/localize"
-    ]
+    "moduleResolution": "bundler",
+    "types": ["jasmine", "@angular/localize"]
   },
-  "files": [
-    "src/test.ts",
-    "src/polyfills.ts"
-  ],
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "node_modules/**/*",
-    "dist/**/*",
-    "www/**/*"
-  ]
+  "files": ["src/test.ts", "src/polyfills.ts"],
+  "include": ["src/**/*.spec.ts", "src/**/*.d.ts"],
+  "exclude": ["node_modules/**/*", "dist/**/*", "www/**/*"]
 }

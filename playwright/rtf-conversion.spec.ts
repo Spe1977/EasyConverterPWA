@@ -19,18 +19,17 @@ test.describe('EasyConverter - RTF Conversion Cross-Browser', () => {
 
       await expect(page.getByText('test.html').first()).toBeVisible({ timeout: 5000 });
 
-      // Click format selector to choose RTF
-      const formatButton = page
-        .locator('ion-button')
-        .filter({ hasText: /select format/i })
-        .first();
-      if (await formatButton.isVisible()) {
-        await formatButton.click();
-        await page.locator('ion-item').filter({ hasText: 'RTF' }).first().click();
-      }
+      // Open target format selector and choose RTF using the current modal-based UI.
+      await page.locator('app-format-selector .format-box').nth(1).click();
+      await page.getByRole('button', { name: /rich text.*\.rtf/i }).click();
 
-      // Verify conversion succeeded
-      await expect(page.locator('.conversion-success, ion-toast')).toBeVisible({ timeout: 10000 });
+      const convertButton = page.locator('ion-button.convert-button');
+      await expect(convertButton).toBeEnabled({ timeout: 5000 });
+      await convertButton.click();
+
+      // Success is currently reported through an Ionic alert after saving the file.
+      await expect(page.locator('ion-alert')).toBeVisible({ timeout: 10000 });
+      await expect(page.getByText(/conversion successful/i)).toBeVisible({ timeout: 10000 });
     });
 
     test('should convert HTML with bold formatting to RTF', async ({ page }) => {

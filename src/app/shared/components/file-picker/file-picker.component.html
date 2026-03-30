@@ -17,13 +17,15 @@
     </div>
   } @else {
     <div class="picker-text">
-      <h3 i18n="@@filePickerDropText">Drop file here or click to select</h3>
+      <h3>{{ 'FILE_PICKER.DROP_TEXT' | translate }}</h3>
       <p class="ion-text-center">
         @if (accept() !== '*/*') {
-          <span i18n="@@filePickerAcceptedLabel">Accepted: {{ accept() }}</span
+          <span>{{ 'FILE_PICKER.ACCEPTED_LABEL' | translate }}: {{ accept() }}</span
           ><br />
         }
-        <span i18n="@@filePickerMaxSizeLabel">Max size: {{ formatMaxSize() }}</span>
+        <span>{{ 'FILE_PICKER.MAX_SIZE_VARIES_LABEL' | translate }}: {{ formatMaxSize() }}</span>
+        <br />
+        <span class="limits-hint">{{ 'FILE_PICKER.SIZE_LIMITS_HINT' | translate }}</span>
       </p>
     </div>
   }

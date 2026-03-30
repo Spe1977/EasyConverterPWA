@@ -54,24 +54,24 @@ export class YamlService {
    * @param options Opzioni di parsing
    * @returns Oggetto JavaScript (parsable come JSON)
    */
-  async yamlToJson(yaml: string, options: YamlParseOptions = {}): Promise<any> {
+  async yamlToJson(yaml: string, options: YamlParseOptions = {}): Promise<unknown> {
     try {
       // Lazy load yaml library
       const YAML = await import('yaml');
 
-      const parseOptions: any = {};
+      const parseOptions: Record<string, unknown> = {};
 
       // Schema selection
       if (options.schema === 'json') {
-        parseOptions.schema = 'json';
+        parseOptions['schema'] = 'json';
       } else if (options.schema === 'failsafe') {
-        parseOptions.schema = 'failsafe';
+        parseOptions['schema'] = 'failsafe';
       }
       // 'core' è il default, non serve specificarlo
 
       // Strict mode
       if (options.strict) {
-        parseOptions.strict = true;
+        parseOptions['strict'] = true;
       }
 
       const parsed = YAML.parse(yaml, parseOptions);
@@ -94,7 +94,7 @@ export class YamlService {
    * @param options Opzioni di serializzazione
    * @returns Stringa YAML
    */
-  async jsonToYaml(json: any, options: YamlStringifyOptions = {}): Promise<string> {
+  async jsonToYaml(json: unknown, options: YamlStringifyOptions = {}): Promise<string> {
     try {
       // Lazy load yaml library
       const YAML = await import('yaml');
@@ -102,17 +102,17 @@ export class YamlService {
       // Se è stringa, parsala prima
       const data = typeof json === 'string' ? JSON.parse(json) : json;
 
-      const stringifyOptions: any = {
+      const stringifyOptions: Record<string, unknown> = {
         indent: options.indent ?? 2,
         lineWidth: options.lineWidth ?? 80,
       };
 
       if (options.flowLevel !== undefined) {
-        stringifyOptions.flowLevel = options.flowLevel;
+        stringifyOptions['flowLevel'] = options.flowLevel;
       }
 
       if (options.sortKeys) {
-        stringifyOptions.sortMapEntries = true;
+        stringifyOptions['sortMapEntries'] = true;
       }
 
       const yamlString = YAML.stringify(data, stringifyOptions);
@@ -139,10 +139,11 @@ export class YamlService {
 
       try {
         YAML.parse(yaml);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // YAML library fornisce informazioni dettagliate sugli errori
-        const lineNumber = error.linePos?.[0]?.line ?? 0;
-        const message = error.message || 'Unknown YAML error';
+        const yamlError = error as { linePos?: { line: number }[]; message?: string };
+        const lineNumber = yamlError.linePos?.[0]?.line ?? 0;
+        const message = yamlError.message || 'Unknown YAML error';
         errors.push({ line: lineNumber, message });
       }
 
@@ -200,7 +201,7 @@ export class YamlService {
    * @param indent Livello di indentazione
    * @returns Testo formattato
    */
-  private objectToText(obj: any, indent: number = 0): string {
+  private objectToText(obj: unknown, indent: number = 0): string {
     const spacing = '  '.repeat(indent);
     const lines: string[] = [];
 
@@ -245,7 +246,7 @@ export class YamlService {
    * @param yaml YAML sorgente
    * @returns Array di oggetti
    */
-  async yamlToArray(yaml: string): Promise<any[]> {
+  async yamlToArray(yaml: string): Promise<unknown[]> {
     try {
       const data = await this.yamlToJson(yaml);
 
@@ -272,7 +273,7 @@ export class YamlService {
    * @param yaml YAML multi-document
    * @returns Array di oggetti parsed
    */
-  async parseMultiDocument(yaml: string): Promise<any[]> {
+  async parseMultiDocument(yaml: string): Promise<unknown[]> {
     try {
       const YAML = await import('yaml');
 

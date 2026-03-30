@@ -1,0 +1,154 @@
+{
+  "APP": {
+    "TITLE": "EasyConverter"
+  },
+  "HERO": {
+    "TITLE": "Converti i Tuoi File",
+    "SUPPORTED_FORMATS": "Formati supportati: PDF, TXT, MD, HTML, RTF, CSV, JSON, XML, YAML, XLSX, PNG, JPG, WEBP, EPUB"
+  },
+  "FILE_PICKER": {
+    "DROP_TEXT": "Trascina il file qui o clicca per selezionare",
+    "ACCEPTED_LABEL": "Accettati",
+    "MAX_SIZE_LABEL": "Dimensione massima",
+    "MAX_SIZE_VARIES_LABEL": "Limite massimo",
+    "SIZE_LIMITS_HINT": "PDF: 25 MB • Immagini e fogli di calcolo: 15 MB • Testo, dati ed EPUB: 20 MB",
+    "FILE_TOO_LARGE_FOR_TYPE": "Il file supera il limite per {{format}}. Massimo consentito: {{maxSize}}.",
+    "THIS_FILE_TYPE": "questo tipo di file",
+    "FILES_SELECTED": "{{count}} file selezionati"
+  },
+  "FORMAT_SELECTOR": {
+    "FROM_LABEL": "Da",
+    "TO_LABEL": "A",
+    "SELECT_SOURCE": "Seleziona formato sorgente",
+    "SELECT_TARGET": "Seleziona formato destinazione",
+    "SOURCE_MODAL_TITLE": "Seleziona Formato Sorgente",
+    "TARGET_MODAL_TITLE": "Seleziona Formato Destinazione",
+    "CLOSE_BUTTON": "Chiudi",
+    "EMPTY_STATE": "Seleziona prima un formato sorgente"
+  },
+  "CONVERSION": {
+    "SELECT_FORMATS_TITLE": "Seleziona Formati",
+    "CONVERT_NOW_BUTTON": "Converti Ora",
+    "CONVERT_SHARE_BUTTON": "Converti e Condividi",
+    "SELECTED_FILE_LABEL": "File Selezionato",
+    "CONVERTING": "Conversione del file in corso...",
+    "CANCEL_BUTTON": "Annulla",
+    "TIMEOUT": "La conversione ha impiegato troppo tempo ed è stata interrotta. Prova con un file più piccolo o un formato diverso.",
+    "CANCELLED": "Conversione annullata.",
+    "SUCCESS_HEADER": "Conversione Riuscita",
+    "SUCCESS_MESSAGE": "File convertito con successo in {{duration}}!<br><br><strong>{{fileName}}</strong>",
+    "SUCCESS_MESSAGE_NO_DURATION": "File convertito con successo!<br><br><strong>{{fileName}}</strong>",
+    "SUCCESS_OK": "OK",
+    "FAILED": "Conversione fallita: {{message}}",
+    "FAILED_FALLBACK": "Conversione fallita",
+    "UNKNOWN_ERROR": "Errore sconosciuto",
+    "SHARE_SUCCESS": "File condiviso con successo",
+    "SHARE_FAILED": "Condivisione fallita: {{message}}"
+  },
+  "FILE_PREVIEW": {
+    "TITLE": "Preview input",
+    "STATS": "{{lines}} righe · {{chars}} caratteri",
+    "TRUNCATED": "Preview troncata ai primi 1200 caratteri.",
+    "IMAGE_NOTE": "Anteprima locale generata nel browser prima della conversione.",
+    "UNAVAILABLE_NOTE": "Preview non disponibile per questo formato. La conversione resta supportata, ma la verifica visiva preventiva richiede il formato di output."
+  },
+  "QUALITY_FEEDBACK": {
+    "EXPECTED_EYEBROW": "Qualità attesa",
+    "RESULT_EYEBROW": "Ultimo output",
+    "BLOCKING_TITLE": "Conversione bloccata dal preflight",
+    "BLOCKING_DETAIL": "Il file richiede correzioni prima di poter essere convertito in modo affidabile.",
+    "REVIEW_TITLE": "Conversione da verificare",
+    "LOSSLESS_TITLE": "Output atteso stabile",
+    "LOSSLESS_DETAIL": "La pipeline prevista è senza perdita: il contenuto dovrebbe restare coerente anche dopo il salvataggio.",
+    "STRUCTURED_TITLE": "Output strutturato affidabile",
+    "STRUCTURED_DETAIL": "La struttura principale dovrebbe essere preservata senza interventi manuali nella maggior parte dei casi.",
+    "TEXT_ONLY_TITLE": "Contenuto testuale preservato",
+    "TEXT_ONLY_DETAIL": "Aspettati un risultato leggibile, ma senza layout, media o stili avanzati.",
+    "BEST_EFFORT_TITLE": "Output potenzialmente degradato",
+    "BEST_EFFORT_DETAIL": "La conversione è utile ma non fedele: struttura o formattazione possono cambiare sensibilmente.",
+    "TABLE_ONLY_TITLE": "Output focalizzato sulla tabella",
+    "TABLE_ONLY_DETAIL": "La conversione privilegia righe e colonne. Elementi fuori dalla tabella non verranno rappresentati bene.",
+    "UNIFORM_DATA_TITLE": "Qualità dipendente dai dati",
+    "UNIFORM_DATA_DETAIL": "Il risultato è valido solo se record e campi sono abbastanza uniformi dopo il flattening.",
+    "RESULT_TITLE": "Conversione completata",
+    "RESULT_DETAIL": "Output generato. Usa dimensione finale e affidabilità attesa per decidere se fare una verifica manuale rapida.",
+    "RESULT_DURATION": "tempo {{duration}}"
+  },
+  "STRUCTURED_DATA_OPTIONS": {
+    "TITLE": "Opzioni dati strutturati",
+    "DESCRIPTION": "Controlla come JSON o XML vengono appiattiti prima dell'export tabellare.",
+    "COLLECTION_LABEL": "Collezione da esportare",
+    "COLLECTION_AUTO": "Rilevamento automatico",
+    "ARRAY_STRATEGY_LABEL": "Array di primitivi",
+    "ARRAY_STRATEGY_JOIN": "Unisci con virgole",
+    "ARRAY_STRATEGY_JSON": "Mantieni come JSON",
+    "COLUMN_NAMING_LABEL": "Naming colonne",
+    "COLUMN_NAMING_DOT": "Percorsi con punto",
+    "COLUMN_NAMING_SNAKE": "snake_case"
+  },
+  "FEATURES": {
+    "FAST": {
+      "TITLE": "Veloce",
+      "DESCRIPTION": "Conversioni ultra-rapide grazie al tuo dispositivo"
+    },
+    "SECURE": {
+      "TITLE": "Sicuro",
+      "DESCRIPTION": "I tuoi file non lasciano mai il dispositivo"
+    },
+    "OFFLINE": {
+      "TITLE": "Offline",
+      "DESCRIPTION": "Funziona perfettamente senza internet"
+    }
+  },
+  "FORMAT_CATEGORIES": {
+    "TEXT": "Testo",
+    "DATA": "Dati",
+    "DOCUMENT": "Documento",
+    "IMAGE": "Immagine",
+    "OTHER": "Altro"
+  },
+  "CONVERSION_RELIABILITY": {
+    "LOSSLESS": "Senza perdita",
+    "STRUCTURED": "Strutturata",
+    "TEXT-ONLY": "Solo testo",
+    "BEST-EFFORT": "Best effort",
+    "TABLE-ONLY": "Solo tabella",
+    "REQUIRES-UNIFORM-DATA": "Dati uniformi"
+  },
+  "CONVERSION_VALIDATION": {
+    "UNSUPPORTED": "Questa conversione non è supportata.",
+    "TEXT_ONLY": "Verrà conservato solo il contenuto testuale. Layout, stili e media incorporati possono andare persi.",
+    "BEST_EFFORT": "Questa conversione può perdere formattazione o struttura. Controlla il risultato prima di condividerlo.",
+    "TABLE_ONLY": "L'output è ottimizzato per dati tabellari e genererà un risultato focalizzato su tabella.",
+    "REQUIRES_UNIFORM_DATA": "Questa conversione funziona al meglio con record uniformi che condividono gli stessi campi.",
+    "INVALID_JSON": "Il file selezionato non contiene JSON valido, quindi la conversione non può partire.",
+    "INVALID_XML": "Il file selezionato non contiene XML valido, quindi la conversione non può partire.",
+    "JSON_ARRAY_OF_OBJECTS_REQUIRED": "Questa conversione richiede un array JSON di oggetti, per esempio [{\"name\":\"Ada\"}].",
+    "JSON_UNIFORM_KEYS_REQUIRED": "Questa conversione richiede oggetti JSON con gli stessi campi in ogni riga.",
+    "HTML_TABLE_REQUIRED": "Per esportare HTML verso CSV o XLSX serve almeno una tabella HTML reale con righe e celle leggibili.",
+    "HTML_TABLE_MERGED_CELLS": "La tabella HTML usa celle unite con rowspan o colspan. L'export appiattirà la struttura: verifica attentamente l'output.",
+    "HTML_TABLE_NESTED": "Il documento HTML contiene tabelle annidate. Solo la tabella esterna verrà esportata; il contenuto delle tabelle interne è escluso dall'output tabellare.",
+    "HTML_TABLE_COMPLEXITY": "L'HTML contiene tabelle e questo target semplificherà righe, colonne o celle unite. Verifica attentamente l'output.",
+    "STRUCTURED_TABULAR_DATA_REQUIRED": "Questa conversione richiede record tabellari uniformi o una struttura appiattibile senza array annidati di oggetti.",
+    "STRUCTURED_DATA_NORMALIZED": "Il contenuto verrà normalizzato in colonne tabellari con flattening controllato. Verifica intestazioni e valori finali.",
+    "PDF_TEXT_REQUIRED": "Questo PDF non espone testo estraibile. Se deriva da scansione o immagini, la conversione testuale non può partire in modo affidabile.",
+    "PDF_TEXT_LIMITED": "Il PDF contiene pochissimo testo estraibile. Il risultato potrebbe essere incompleto o quasi vuoto.",
+    "MULTI_STEP_REVIEW": "Questa conversione usa una pipeline a più step già nota come fragile. Controlla con attenzione struttura e formattazione finali.",
+    "TXT_NO_TABULAR_STRUCTURE": "Il file di testo non contiene abbastanza righe per produrre un CSV significativo. Servono almeno due righe (intestazione + dati).",
+    "TXT_DELIMITER_UNCERTAIN": "Non è stato rilevato un delimitatore coerente nel file di testo. La conversione tenterà un parsing best-effort, ma il risultato potrebbe richiedere aggiustamenti manuali."
+  },
+  "FORMAT_DETECTION": {
+    "DETECTED_CONTENT": "Rilevato contenuto {{format}} dentro un file .{{extension}}",
+    "COULD_NOT_DETECT": "Impossibile rilevare il formato del file"
+  },
+  "PWA_UPDATE": {
+    "NEW_VERSION": "Nuova versione disponibile",
+    "NEW_VERSION_DETAIL": "Una nuova versione di EasyConverter è pronta!",
+    "UPDATE_NOW": "Aggiorna Ora",
+    "LATER": "Più tardi",
+    "UPDATE_ERROR": "Errore durante l'aggiornamento. Riprova più tardi."
+  },
+  "LANGUAGE": {
+    "SWITCH_TOOLTIP": "Cambia lingua"
+  }
+}

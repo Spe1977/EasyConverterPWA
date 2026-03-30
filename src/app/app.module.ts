@@ -1,8 +1,11 @@
 import { NgModule, isDevMode, APP_INITIALIZER } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouteReuseStrategy } from '@angular/router';
+import { HttpClient, provideHttpClient, withInterceptorsFromDi } from '@angular/common/http';
 
 import { IonicModule, IonicRouteStrategy } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
+import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppComponent } from './app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -28,6 +31,9 @@ export function initializePwaUpdates(pwaService: PwaUpdateService) {
     IonicModule.forRoot(),
     AppRoutingModule,
     UpdateNotificationComponent,
+    TranslateModule.forRoot({
+      fallbackLang: 'en',
+    }),
     ServiceWorkerModule.register('ngsw-worker.js', {
       enabled: !isDevMode(),
       // Register the ServiceWorker as soon as the application is stable
@@ -36,6 +42,11 @@ export function initializePwaUpdates(pwaService: PwaUpdateService) {
     }),
   ],
   providers: [
+    provideHttpClient(withInterceptorsFromDi()),
+    provideTranslateHttpLoader({
+      prefix: './assets/i18n/',
+      suffix: '.json',
+    }),
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     {
       provide: APP_INITIALIZER,

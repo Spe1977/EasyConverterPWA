@@ -7,7 +7,7 @@ import juice from 'juice';
  */
 export interface SanitizeOptions {
   allowedTags?: string[];
-  allowedAttributes?: { [key: string]: string[] };
+  allowedAttributes?: string[] | { [key: string]: string[] };
   allowedSchemes?: string[];
   keepComments?: boolean;
 }
@@ -33,6 +33,50 @@ export interface MinifyOptions {
   providedIn: 'root',
 })
 export class HtmlService {
+  private readonly defaultAllowedTags = [
+    'html',
+    'head',
+    'body',
+    'meta',
+    'title',
+    'style',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'p',
+    'div',
+    'span',
+    'a',
+    'ul',
+    'ol',
+    'li',
+    'b',
+    'i',
+    'strong',
+    'em',
+    'br',
+    'hr',
+    'img',
+    'table',
+    'thead',
+    'tbody',
+    'tr',
+    'th',
+    'td',
+    'blockquote',
+    'pre',
+    'code',
+  ];
+  private readonly defaultAllowedAttributes = {
+    a: ['href', 'title', 'target', 'rel'],
+    img: ['src', 'alt', 'title', 'width', 'height'],
+    meta: ['charset', 'name', 'content'],
+    '*': ['class', 'id', 'style'],
+  } satisfies Record<string, string[]>;
+
   /**
    * Sanitizza HTML per rimuovere script e contenuti pericolosi (XSS protection)
    * @param html HTML da sanitizzare
@@ -40,43 +84,10 @@ export class HtmlService {
    * @returns HTML sanitizzato
    */
   sanitize(html: string, options: SanitizeOptions = {}): string {
-    const config: any = {
-      ALLOWED_TAGS: options.allowedTags || [
-        'h1',
-        'h2',
-        'h3',
-        'h4',
-        'h5',
-        'h6',
-        'p',
-        'div',
-        'span',
-        'a',
-        'ul',
-        'ol',
-        'li',
-        'b',
-        'i',
-        'strong',
-        'em',
-        'br',
-        'hr',
-        'img',
-        'table',
-        'thead',
-        'tbody',
-        'tr',
-        'th',
-        'td',
-        'blockquote',
-        'pre',
-        'code',
-      ],
-      ALLOWED_ATTR: options.allowedAttributes || {
-        a: ['href', 'title', 'target'],
-        img: ['src', 'alt', 'title', 'width', 'height'],
-        '*': ['class', 'id', 'style'],
-      },
+    const isWholeDocument = /<!doctype\s+html|<html[\s>]/i.test(html);
+    const config: Record<string, unknown> = {
+      ALLOWED_TAGS: options.allowedTags || this.defaultAllowedTags,
+      ALLOWED_ATTR: this.normalizeAllowedAttributes(options.allowedAttributes),
       ALLOWED_URI_REGEXP: options.allowedSchemes
         ? new RegExp(`^(${options.allowedSchemes.join('|')}):`, 'i')
         : /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|xmpp|data):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
@@ -84,14 +95,25 @@ export class HtmlService {
       RETURN_DOM: false,
       RETURN_DOM_FRAGMENT: false,
       RETURN_DOM_IMPORT: false,
-      WHOLE_DOCUMENT: false,
+      WHOLE_DOCUMENT: isWholeDocument,
     };
 
-    if (options.keepComments) {
-      config.ALLOW_DATA_ATTR = false;
+    if (options.keepComments !== true) {
+      html = html.replace(/<!--[\s\S]*?-->/g, '');
     }
 
     return String(DOMPurify.sanitize(html, config));
+  }
+
+  private normalizeAllowedAttributes(
+    allowedAttributes?: SanitizeOptions['allowedAttributes']
+  ): string[] {
+    if (Array.isArray(allowedAttributes)) {
+      return [...new Set(allowedAttributes)];
+    }
+
+    const source = allowedAttributes || this.defaultAllowedAttributes;
+    return [...new Set(Object.values(source).flat())];
   }
 
   /**

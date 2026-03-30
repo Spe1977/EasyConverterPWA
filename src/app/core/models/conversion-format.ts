@@ -34,6 +34,26 @@ export enum ConversionFormat {
   EPUB = 'epub',
 }
 
+export type ConversionReliability =
+  | 'lossless'
+  | 'structured'
+  | 'text-only'
+  | 'best-effort'
+  | 'table-only'
+  | 'requires-uniform-data';
+
+export interface ConversionSupport {
+  target: ConversionFormat;
+  reliability: ConversionReliability;
+}
+
+export interface ConversionPreflightResult {
+  reliability: ConversionReliability | null;
+  blocking: boolean;
+  severity: 'warning' | 'danger' | null;
+  messageKey: string | null;
+}
+
 /**
  * Mappa dei formati con metadati
  */

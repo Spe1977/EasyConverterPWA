@@ -1,7 +1,7 @@
 {
   "name": "EasyConverter",
   "short_name": "EasyConverter",
-  "description": "Offline document converter. Convert between 10+ formats (PDF, TXT, MD, HTML, CSV, JSON, XLSX). Fast, secure, and 100% offline.",
+  "description": "Convert your files offline with EasyConverter. Supports PDF, TXT, MD, HTML, RTF, CSV, JSON, XML, YAML, XLSX, PNG, JPG, WEBP, and EPUB directly in your browser.",
   "theme_color": "#3880ff",
   "background_color": "#ffffff",
   "display": "standalone",

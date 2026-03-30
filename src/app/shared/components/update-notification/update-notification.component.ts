@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, inject, signal } from '@angular/core';
+
 import { IonicModule } from '@ionic/angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { PwaUpdateService } from '@core/services/pwa-update.service';
 import { Subscription } from 'rxjs';
 
@@ -11,39 +12,42 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-update-notification',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [IonicModule, TranslateModule],
   template: `
-    <ion-card *ngIf="updateAvailable" class="update-card">
-      <ion-card-content>
-        <div class="update-content">
-          <div class="update-icon">
-            <ion-icon name="cloud-download-outline" color="primary"></ion-icon>
+    @if (updateAvailable()) {
+      <ion-card class="update-card">
+        <ion-card-content>
+          <div class="update-content">
+            <div class="update-icon">
+              <ion-icon name="cloud-download-outline" color="primary"></ion-icon>
+            </div>
+            <div class="update-text">
+              <h3>{{ 'PWA_UPDATE.NEW_VERSION' | translate }}</h3>
+              <p>{{ 'PWA_UPDATE.NEW_VERSION_DETAIL' | translate }}</p>
+            </div>
+            <div class="update-actions">
+              <ion-button size="small" (click)="activateUpdate()">
+                <ion-icon slot="start" name="refresh-outline"></ion-icon>
+                {{ 'PWA_UPDATE.UPDATE_NOW' | translate }}
+              </ion-button>
+              <ion-button size="small" fill="clear" (click)="dismissUpdate()">
+                <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+              </ion-button>
+            </div>
           </div>
-          <div class="update-text">
-            <h3>Aggiornamento Disponibile</h3>
-            <p>Una nuova versione di EasyConverter è pronta!</p>
-          </div>
-          <div class="update-actions">
-            <ion-button size="small" (click)="activateUpdate()">
-              <ion-icon slot="start" name="refresh-outline"></ion-icon>
-              Aggiorna
-            </ion-button>
-            <ion-button size="small" fill="clear" (click)="dismissUpdate()">
-              <ion-icon slot="icon-only" name="close-outline"></ion-icon>
-            </ion-button>
-          </div>
-        </div>
-      </ion-card-content>
-    </ion-card>
+        </ion-card-content>
+      </ion-card>
+    }
 
-    <ion-toast
-      *ngIf="showErrorToast"
-      [isOpen]="showErrorToast"
-      message="Errore durante l'aggiornamento. Riprova più tardi."
-      [duration]="3000"
-      color="danger"
-      (didDismiss)="showErrorToast = false"
-    ></ion-toast>
+    @if (showErrorToast()) {
+      <ion-toast
+        [isOpen]="showErrorToast()"
+        [message]="'PWA_UPDATE.UPDATE_ERROR' | translate"
+        [duration]="3000"
+        color="danger"
+        (didDismiss)="showErrorToast.set(false)"
+      ></ion-toast>
+    }
   `,
   styles: [
     `
@@ -124,23 +128,22 @@ import { Subscription } from 'rxjs';
 export class UpdateNotificationComponent implements OnInit, OnDestroy {
   private readonly pwaUpdateService = inject(PwaUpdateService);
 
-  updateAvailable = false;
-  showErrorToast = false;
+  updateAvailable = signal(false);
+  showErrorToast = signal(false);
   private subscriptions = new Subscription();
 
   ngOnInit(): void {
     // Listen for updates
     const updateSub = this.pwaUpdateService.listenForUpdates().subscribe((event) => {
       console.log('New version available:', event.latestVersion);
-      this.updateAvailable = true;
+      this.updateAvailable.set(true);
     });
     this.subscriptions.add(updateSub);
 
     // Handle unrecoverable state
     const unrecoverableSub = this.pwaUpdateService.getUnrecoverableState().subscribe((event) => {
       console.error('App is in unrecoverable state:', event.reason);
-      // In production, might want to show a different message
-      this.showErrorToast = true;
+      this.showErrorToast.set(true);
     });
     this.subscriptions.add(unrecoverableSub);
   }
@@ -158,7 +161,7 @@ export class UpdateNotificationComponent implements OnInit, OnDestroy {
       // Page will reload automatically
     } catch (err) {
       console.error('Failed to activate update:', err);
-      this.showErrorToast = true;
+      this.showErrorToast.set(true);
     }
   }
 
@@ -167,6 +170,6 @@ export class UpdateNotificationComponent implements OnInit, OnDestroy {
    * User can continue using the current version
    */
   dismissUpdate(): void {
-    this.updateAvailable = false;
+    this.updateAvailable.set(false);
   }
 }

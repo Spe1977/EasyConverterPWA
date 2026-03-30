@@ -16,13 +16,18 @@ export interface CsvParseOptions {
  * Risultato parsing CSV
  */
 export interface CsvParseResult {
-  data: any[];
+  data: Record<string, unknown>[];
   meta: {
     delimiter: string;
     linebreak: string;
     fields?: string[];
   };
-  errors: any[];
+  errors: Array<{
+    type: string;
+    code: string;
+    message: string;
+    row?: number;
+  }>;
 }
 
 /**
@@ -51,12 +56,12 @@ export class CsvService {
         delimitersToGuess: [',', ';', '\t', '|', Papa.RECORD_SEP, Papa.UNIT_SEP],
         complete: (results) => {
           resolve({
-            data: results.data,
-            meta: results.meta as any,
+            data: results.data as Record<string, unknown>[],
+            meta: results.meta as CsvParseResult['meta'],
             errors: results.errors,
           });
         },
-        error: (error: any) => {
+        error: (error: Error) => {
           reject(error);
         },
       });
@@ -70,7 +75,7 @@ export class CsvService {
    * @returns Stringa CSV
    */
   stringifyCsv(
-    data: any[],
+    data: Record<string, unknown>[],
     options: {
       delimiter?: string;
       header?: boolean;
@@ -271,7 +276,7 @@ export class CsvService {
    * @param file File CSV
    * @returns Array di oggetti JSON
    */
-  async csvToJson(file: File): Promise<any[]> {
+  async csvToJson(file: File): Promise<Record<string, unknown>[]> {
     const result = await this.parseCsv(file, { header: true, dynamicTyping: true });
     return result.data;
   }
@@ -282,7 +287,7 @@ export class CsvService {
    * @param delimiter Delimiter da usare
    * @returns Stringa CSV
    */
-  jsonToCsv(data: any[], delimiter: string = ','): string {
+  jsonToCsv(data: Record<string, unknown>[], delimiter: string = ','): string {
     return this.stringifyCsv(data, { delimiter, header: true });
   }
 }

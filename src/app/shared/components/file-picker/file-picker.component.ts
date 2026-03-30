@@ -1,7 +1,11 @@
-import { Component, output, input, signal, viewChild, ElementRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, output, input, signal, viewChild, ElementRef, inject } from '@angular/core';
+
 import { IonicModule } from '@ionic/angular';
-import { ConversionFormat } from '@core/models/conversion-format';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { FormatInfo, SUPPORTED_FORMATS } from '@core/models/conversion-format';
+
+type FormatCategory = FormatInfo['category'];
+type SizeLimitsByCategory = Partial<Record<FormatCategory, number>>;
 
 /**
  * Component per selezionare file da convertire
@@ -10,14 +14,17 @@ import { ConversionFormat } from '@core/models/conversion-format';
 @Component({
   selector: 'app-file-picker',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [IonicModule, TranslateModule],
   templateUrl: './file-picker.component.html',
   styleUrls: ['./file-picker.component.scss'],
 })
 export class FilePickerComponent {
+  private translate = inject(TranslateService);
+
   // Inputs
   accept = input<string>('*/*'); // Tipi di file accettati
-  maxSize = input<number>(50 * 1024 * 1024); // 50MB default
+  maxSize = input<number>(25 * 1024 * 1024); // Fallback globale
+  maxSizeByCategory = input<SizeLimitsByCategory>({});
   multiple = input<boolean>(false); // Selezione multipla
 
   // Outputs
@@ -88,18 +95,26 @@ export class FilePickerComponent {
    * Processa i file selezionati
    */
   private handleFiles(files: File[]): void {
-    // Valida dimensione file
-    const invalidFiles = files.filter((f) => f.size > this.maxSize());
-    if (invalidFiles.length > 0) {
-      const maxSizeMB = (this.maxSize() / (1024 * 1024)).toFixed(0);
-      this.fileError.emit(`File too large. Maximum size: ${maxSizeMB}MB`);
+    // Valida dimensione file in base alla categoria del formato
+    const invalidFile = files.find((file) => file.size > this.getMaxSizeForFile(file));
+    if (invalidFile) {
+      const maxSize = this.formatBytes(this.getMaxSizeForFile(invalidFile));
+      const format = this.getFileTypeLabel(invalidFile);
+      this.fileError.emit(
+        this.translate.instant('FILE_PICKER.FILE_TOO_LARGE_FOR_TYPE', {
+          format,
+          maxSize,
+        })
+      );
       return;
     }
 
     // Emetti evento in base a single/multiple
     if (this.multiple()) {
       this.filesSelected.emit(files);
-      this.selectedFileName.set(`${files.length} file(s) selected`);
+      this.selectedFileName.set(
+        this.translate.instant('FILE_PICKER.FILES_SELECTED', { count: files.length })
+      );
     } else {
       const file = files[0];
       this.fileSelected.emit(file);
@@ -112,6 +127,10 @@ export class FilePickerComponent {
    */
   reset(): void {
     this.selectedFileName.set(null);
+    const input = this.fileInput()?.nativeElement;
+    if (input) {
+      input.value = '';
+    }
   }
 
   /**
@@ -119,6 +138,31 @@ export class FilePickerComponent {
    */
   formatMaxSize(): string {
     const bytes = this.maxSize();
+    return this.formatBytes(bytes);
+  }
+
+  private getMaxSizeForFile(file: File): number {
+    const formatInfo = this.getFormatInfo(file);
+    if (!formatInfo) {
+      return this.maxSize();
+    }
+
+    return this.maxSizeByCategory()[formatInfo.category] ?? this.maxSize();
+  }
+
+  private getFormatInfo(file: File): FormatInfo | undefined {
+    const fileName = file.name.toLowerCase();
+    return SUPPORTED_FORMATS.find((format) =>
+      format.extensions.some((extension) => fileName.endsWith(extension))
+    );
+  }
+
+  private getFileTypeLabel(file: File): string {
+    const extension = file.name.split('.').pop()?.toUpperCase();
+    return extension || this.translate.instant('FILE_PICKER.THIS_FILE_TYPE');
+  }
+
+  private formatBytes(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
 
     const k = 1024;

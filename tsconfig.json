@@ -23,10 +23,6 @@
     "target": "ES2022",
     "module": "ES2022",
     "resolveJsonModule": true,
-    "lib": [
-      "ES2022",
-      "dom"
-    ],
     "useDefineForClassFields": false,
     "paths": {
       "@app/*": ["src/app/*"],
@@ -36,17 +32,8 @@
       "@env/*": ["src/environments/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts"
-  ],
-  "exclude": [
-    "src/**/*.spec.ts",
-    "cypress/**/*",
-    "node_modules/**/*",
-    "dist/**/*",
-    "www/**/*"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
+  "exclude": ["src/**/*.spec.ts", "cypress/**/*", "node_modules/**/*", "dist/**/*", "www/**/*"],
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
     "strictInjectionParameters": true,

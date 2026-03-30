@@ -6,14 +6,14 @@
         <div class="format-content">
           <ion-icon [name]="getFormatInfo(selectedSource())?.icon || 'document-outline'"></ion-icon>
           <div class="format-info">
-            <span class="format-label" i18n="@@formatSelectorFromLabel">From</span>
+            <span class="format-label">{{ 'FORMAT_SELECTOR.FROM_LABEL' | translate }}</span>
             <span class="format-name">{{ getFormatInfo(selectedSource())?.label }}</span>
           </div>
         </div>
       } @else {
         <div class="format-content empty">
           <ion-icon name="add-circle-outline"></ion-icon>
-          <span i18n="@@formatSelectorSelectSource">Select source format</span>
+          <span>{{ 'FORMAT_SELECTOR.SELECT_SOURCE' | translate }}</span>
         </div>
       }
     </div>
@@ -33,14 +33,21 @@
         <div class="format-content">
           <ion-icon [name]="getFormatInfo(selectedTarget())?.icon || 'document-outline'"></ion-icon>
           <div class="format-info">
-            <span class="format-label" i18n="@@formatSelectorToLabel">To</span>
+            <span class="format-label">{{ 'FORMAT_SELECTOR.TO_LABEL' | translate }}</span>
             <span class="format-name">{{ getFormatInfo(selectedTarget())?.label }}</span>
+            @if (selectedTarget(); as target) {
+              @if (getReliability(selectedSource(), target); as reliability) {
+                <span class="reliability-badge" [attr.data-reliability]="reliability">
+                  {{ getReliabilityLabel(reliability) }}
+                </span>
+              }
+            }
           </div>
         </div>
       } @else {
         <div class="format-content empty">
           <ion-icon name="add-circle-outline"></ion-icon>
-          <span i18n="@@formatSelectorSelectTarget">Select target format</span>
+          <span>{{ 'FORMAT_SELECTOR.SELECT_TARGET' | translate }}</span>
         </div>
       }
     </div>
@@ -52,21 +59,21 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title i18n="@@formatSelectorSourceModalTitle">Select Source Format</ion-title>
+        <ion-title>{{ 'FORMAT_SELECTOR.SOURCE_MODAL_TITLE' | translate }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="showSourceModal.set(false)">
-            <span i18n="@@formatSelectorCloseButton">Close</span>
+            <span>{{ 'FORMAT_SELECTOR.CLOSE_BUTTON' | translate }}</span>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
     </ion-header>
     <ion-content>
-      @for (category of objectKeys(groupedSourceFormats()); track category) {
+      @for (category of objectKeys(groupedSourceFormats); track category) {
         <ion-list>
           <ion-list-header>
             <ion-label>{{ getCategoryLabel(category) }}</ion-label>
           </ion-list-header>
-          @for (format of groupedSourceFormats()[category]; track format.format) {
+          @for (format of groupedSourceFormats[category]; track format.format) {
             <ion-item
               button
               (click)="selectSource(format.format)"
@@ -93,10 +100,10 @@
   <ng-template>
     <ion-header>
       <ion-toolbar>
-        <ion-title i18n="@@formatSelectorTargetModalTitle">Select Target Format</ion-title>
+        <ion-title>{{ 'FORMAT_SELECTOR.TARGET_MODAL_TITLE' | translate }}</ion-title>
         <ion-buttons slot="end">
           <ion-button (click)="showTargetModal.set(false)">
-            <span i18n="@@formatSelectorCloseButton">Close</span>
+            <span>{{ 'FORMAT_SELECTOR.CLOSE_BUTTON' | translate }}</span>
           </ion-button>
         </ion-buttons>
       </ion-toolbar>
@@ -105,7 +112,7 @@
       @if (targetFormats().length === 0) {
         <div class="empty-state">
           <ion-icon name="alert-circle-outline"></ion-icon>
-          <p i18n="@@formatSelectorEmptyState">Please select a source format first</p>
+          <p>{{ 'FORMAT_SELECTOR.EMPTY_STATE' | translate }}</p>
         </div>
       } @else {
         @for (category of objectKeys(groupedTargetFormats()); track category) {
@@ -123,6 +130,11 @@
                 <ion-label>
                   <h3>{{ format.label }}</h3>
                   <p>{{ format.extensions.join(', ') }}</p>
+                  @if (getReliability(selectedSource(), format.format); as reliability) {
+                    <span class="reliability-badge compact" [attr.data-reliability]="reliability">
+                      {{ getReliabilityLabel(reliability) }}
+                    </span>
+                  }
                 </ion-label>
                 @if (selectedTarget() === format.format) {
                   <ion-icon name="checkmark-circle" color="primary" slot="end"></ion-icon>

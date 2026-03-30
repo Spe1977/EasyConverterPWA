@@ -74,10 +74,18 @@ export class XmlService {
    * @param options Opzioni di parsing
    * @returns Oggetto JavaScript
    */
-  async xmlToJson(xml: string, options: XmlParseOptions = {}): Promise<any> {
+  async xmlToJson(xml: string, options: XmlParseOptions = {}): Promise<unknown> {
     try {
       // Lazy load fast-xml-parser
-      const { XMLParser } = await import('fast-xml-parser');
+      const { XMLParser, XMLValidator } = await import('fast-xml-parser');
+
+      const validationResult = XMLValidator.validate(xml, {
+        allowBooleanAttributes: true,
+      });
+      if (validationResult !== true) {
+        const error = validationResult as { err?: { line?: number; msg?: string } };
+        throw new Error(error.err?.msg || 'Invalid XML');
+      }
 
       const parserOptions = {
         ignoreAttributes: options.ignoreAttributes ?? false,
@@ -111,7 +119,7 @@ export class XmlService {
    * @param options Opzioni di generazione
    * @returns Stringa XML
    */
-  async jsonToXml(json: any, options: XmlBuildOptions = {}): Promise<string> {
+  async jsonToXml(json: unknown, options: XmlBuildOptions = {}): Promise<string> {
     try {
       // Lazy load fast-xml-parser
       const { XMLBuilder } = await import('fast-xml-parser');
@@ -162,7 +170,7 @@ export class XmlService {
       }
 
       // Errore di validazione
-      const error = result as any;
+      const error = result as { err?: { line?: number; msg?: string } };
       return [
         {
           line: error.err?.line ?? 0,
@@ -324,7 +332,7 @@ export class XmlService {
    * @param indent Livello di indentazione
    * @returns Testo formattato
    */
-  private objectToText(obj: any, indent: number = 0): string {
+  private objectToText(obj: unknown, indent: number = 0): string {
     const spacing = '  '.repeat(indent);
     const lines: string[] = [];
 

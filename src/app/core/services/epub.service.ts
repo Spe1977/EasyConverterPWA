@@ -168,40 +168,102 @@ export class EpubService {
 
   /**
    * Estrae contenuto HTML da EPUB
+   * Legge container.xml per trovare il rootfile, segue l'ordine dello spine,
+   * filtra i documenti di navigazione e preserva gli stili CSS inline.
    * @param file File EPUB
    * @returns Contenuto HTML estratto
    */
   async extractHtmlFromEpub(file: File): Promise<string> {
     const arrayBuffer = await file.arrayBuffer();
     const zip = await JSZip.loadAsync(arrayBuffer);
+    const parser = new DOMParser();
 
-    // Leggi content.opf per trovare i file dei capitoli
-    const contentOpf = await zip.file('OEBPS/content.opf')?.async('string');
+    // 1. Trova il rootfile path da container.xml
+    const rootfilePath = await this.findRootfilePath(zip, parser);
+
+    // 2. Leggi e parsa content.opf
+    const contentOpf = await zip.file(rootfilePath)?.async('string');
     if (!contentOpf) {
-      throw new Error('Invalid EPUB: content.opf not found');
+      throw new Error(`Invalid EPUB: content.opf not found at ${rootfilePath}`);
     }
 
-    // Parse content.opf per trovare i file HTML
-    const parser = new DOMParser();
     const opfDoc = parser.parseFromString(contentOpf, 'text/xml');
-    const items = opfDoc.querySelectorAll('manifest item[media-type="application/xhtml+xml"]');
+    const opfDir = rootfilePath.includes('/')
+      ? rootfilePath.substring(0, rootfilePath.lastIndexOf('/') + 1)
+      : '';
 
-    let fullHtml = '';
-
-    // Estrai contenuto da ogni capitolo
-    for (const item of Array.from(items)) {
+    // 3. Costruisci mappa manifest id -> {href, properties, mediaType}
+    const manifestMap = new Map<string, { href: string; properties: string; mediaType: string }>();
+    const manifestItems = opfDoc.querySelectorAll('manifest item');
+    for (const item of Array.from(manifestItems)) {
+      const id = item.getAttribute('id');
       const href = item.getAttribute('href');
-      if (href && !href.includes('nav.xhtml')) {
-        const chapterFile = await zip.file(`OEBPS/${href}`)?.async('string');
-        if (chapterFile) {
-          // Estrai solo il contenuto del body
-          const chapterDoc = parser.parseFromString(chapterFile, 'text/html');
-          const body = chapterDoc.querySelector('body');
-          if (body) {
-            fullHtml += body.innerHTML + '\n\n';
-          }
+      const mediaType = item.getAttribute('media-type') || '';
+      const properties = item.getAttribute('properties') || '';
+      if (id && href) {
+        manifestMap.set(id, { href, properties, mediaType });
+      }
+    }
+
+    // 4. Identifica gli id dei documenti di navigazione da escludere
+    const navIds = new Set<string>();
+    for (const [id, info] of manifestMap) {
+      if (info.properties.includes('nav')) {
+        navIds.add(id);
+      }
+    }
+
+    // 5. Estrai CSS dai fogli di stile referenziati nel manifest
+    const cssContent = await this.extractEpubCss(zip, opfDir, manifestMap);
+
+    // 6. Segui l'ordine dello spine per leggere i capitoli
+    const spineItems = opfDoc.querySelectorAll('spine itemref');
+    const orderedIds: string[] = [];
+    for (const itemref of Array.from(spineItems)) {
+      const idref = itemref.getAttribute('idref');
+      if (idref && !navIds.has(idref)) {
+        orderedIds.push(idref);
+      }
+    }
+
+    // Fallback: se lo spine è vuoto, usa tutti gli item XHTML dal manifest (esclusi nav)
+    if (orderedIds.length === 0) {
+      for (const [id, info] of manifestMap) {
+        if (info.mediaType === 'application/xhtml+xml' && !navIds.has(id)) {
+          orderedIds.push(id);
         }
       }
+    }
+
+    // 7. Estrai HTML da ogni capitolo nell'ordine dello spine
+    let fullHtml = '';
+    for (const id of orderedIds) {
+      const info = manifestMap.get(id);
+      if (!info || info.mediaType !== 'application/xhtml+xml') continue;
+
+      // Decode percent-encoded hrefs (e.g. "Chapter%201.xhtml" -> "Chapter 1.xhtml")
+      const decodedHref = this.decodeEpubHref(info.href);
+      const filePath = opfDir + decodedHref;
+      // Try decoded path first, then original href as fallback
+      const zipEntry = zip.file(filePath) ?? zip.file(opfDir + info.href);
+      const chapterFile = await zipEntry?.async('string');
+      if (chapterFile) {
+        const chapterDoc = parser.parseFromString(chapterFile, 'text/html');
+        const body = chapterDoc.querySelector('body');
+        if (body) {
+          fullHtml += body.innerHTML + '\n\n';
+        }
+      }
+      // Gracefully skip missing spine items instead of crashing
+    }
+
+    if (!fullHtml.trim()) {
+      throw new Error('Invalid EPUB: no readable chapter content found');
+    }
+
+    // 8. Se CSS presente, wrappa in uno style tag per preservare la formattazione
+    if (cssContent) {
+      fullHtml = `<style>${cssContent}</style>\n${fullHtml}`;
     }
 
     return fullHtml;
@@ -215,8 +277,59 @@ export class EpubService {
   async extractTextFromEpub(file: File): Promise<string> {
     const html = await this.extractHtmlFromEpub(file);
     const tempDiv = document.createElement('div');
+    // HTML proviene dalla nostra estrazione EPUB interna, non da input utente esterno
     tempDiv.innerHTML = html;
+    // Rimuovi i tag <style> per evitare che il CSS finisca nel testo estratto
+    for (const style of Array.from(tempDiv.querySelectorAll('style'))) {
+      style.remove();
+    }
     return tempDiv.textContent || tempDiv.innerText || '';
+  }
+
+  /**
+   * Trova il path del rootfile (content.opf) leggendo META-INF/container.xml.
+   * Fallback su OEBPS/content.opf se container.xml non è presente o non valido.
+   */
+  private async findRootfilePath(zip: JSZip, parser: DOMParser): Promise<string> {
+    const containerXml = await zip.file('META-INF/container.xml')?.async('string');
+    if (containerXml) {
+      const containerDoc = parser.parseFromString(containerXml, 'text/xml');
+      const rootfile = containerDoc.querySelector('rootfile');
+      const fullPath = rootfile?.getAttribute('full-path');
+      if (fullPath) {
+        return fullPath;
+      }
+    }
+    // Fallback: prova percorsi comuni
+    for (const candidate of ['OEBPS/content.opf', 'OPS/content.opf', 'content.opf']) {
+      if (zip.file(candidate)) {
+        return candidate;
+      }
+    }
+    throw new Error('Invalid EPUB: cannot locate content.opf');
+  }
+
+  /**
+   * Estrae e concatena i fogli di stile CSS referenziati nel manifest EPUB.
+   */
+  private async extractEpubCss(
+    zip: JSZip,
+    opfDir: string,
+    manifestMap: Map<string, { href: string; properties: string; mediaType: string }>
+  ): Promise<string> {
+    const cssFragments: string[] = [];
+    for (const [, info] of manifestMap) {
+      if (info.mediaType === 'text/css') {
+        const decodedHref = this.decodeEpubHref(info.href);
+        const cssFile =
+          (await zip.file(opfDir + decodedHref)?.async('string')) ??
+          (await zip.file(opfDir + info.href)?.async('string'));
+        if (cssFile) {
+          cssFragments.push(cssFile);
+        }
+      }
+    }
+    return cssFragments.join('\n');
   }
 
   /**
@@ -351,6 +464,52 @@ ${navItems.join('\n')}
       const v = c === 'x' ? r : (r & 0x3) | 0x8;
       return v.toString(16);
     });
+  }
+
+  /**
+   * Estrae metadati (titolo, autore, lingua) dal content.opf di un EPUB.
+   * @param file File EPUB
+   * @returns Metadati estratti
+   */
+  async extractMetadataFromEpub(file: File): Promise<EpubMetadata> {
+    const arrayBuffer = await file.arrayBuffer();
+    const zip = await JSZip.loadAsync(arrayBuffer);
+    const parser = new DOMParser();
+
+    const rootfilePath = await this.findRootfilePath(zip, parser);
+    const contentOpf = await zip.file(rootfilePath)?.async('string');
+    if (!contentOpf) {
+      throw new Error(`Invalid EPUB: content.opf not found at ${rootfilePath}`);
+    }
+
+    const opfDoc = parser.parseFromString(contentOpf, 'text/xml');
+
+    const getText = (selector: string): string | undefined => {
+      const el = opfDoc.querySelector(selector);
+      return el?.textContent?.trim() || undefined;
+    };
+
+    return {
+      title: getText('metadata title') || getText('metadata dc\\:title') || 'Unknown',
+      author: getText('metadata creator') || getText('metadata dc\\:creator'),
+      publisher: getText('metadata publisher') || getText('metadata dc\\:publisher'),
+      language: getText('metadata language') || getText('metadata dc\\:language'),
+      description: getText('metadata description') || getText('metadata dc\\:description'),
+      pubdate: getText('metadata date') || getText('metadata dc\\:date'),
+      rights: getText('metadata rights') || getText('metadata dc\\:rights'),
+    };
+  }
+
+  /**
+   * Decode percent-encoded EPUB hrefs (e.g. "Chapter%201.xhtml" -> "Chapter 1.xhtml").
+   * Falls back to the original string if decoding fails.
+   */
+  private decodeEpubHref(href: string): string {
+    try {
+      return decodeURIComponent(href);
+    } catch {
+      return href;
+    }
   }
 
   /**

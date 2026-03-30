@@ -1,0 +1,11 @@
+<ion-button
+  fill="clear"
+  size="small"
+  (click)="toggleLanguage()"
+  [title]="'LANGUAGE.SWITCH_TOOLTIP' | translate"
+  class="language-switcher-button"
+>
+  <span class="sr-only">{{ 'LANGUAGE.SWITCH_TOOLTIP' | translate }}</span>
+  <span class="language-flag">{{ getLanguageFlag() }}</span>
+  <span class="language-label">{{ getLanguageLabel() }}</span>
+</ion-button>

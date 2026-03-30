@@ -1,5 +1,5 @@
-import { Component, input, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, computed } from '@angular/core';
+
 import { IonicModule } from '@ionic/angular';
 
 /**
@@ -9,7 +9,7 @@ import { IonicModule } from '@ionic/angular';
 @Component({
   selector: 'app-progress-indicator',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [IonicModule],
   templateUrl: './progress-indicator.component.html',
   styleUrls: ['./progress-indicator.component.scss'],
 })
@@ -20,22 +20,14 @@ export class ProgressIndicatorComponent {
   message = input<string>('Converting...');
   showProgress = input<boolean>(true); // Se false, mostra solo spinner
 
-  /**
-   * Ottieni il valore di progress normalizzato (0-1)
-   */
-  get normalizedProgress(): number {
-    return Math.min(Math.max(this.progress() / 100, 0), 1);
-  }
+  normalizedProgress = computed(() => Math.min(Math.max(this.progress() / 100, 0), 1));
 
-  /**
-   * Ottieni il messaggio formattato con percentuale
-   */
-  get formattedMessage(): string {
+  formattedMessage = computed(() => {
     const msg = this.message();
     const prog = this.progress();
     if (this.showProgress() && prog > 0) {
       return `${msg} (${Math.round(prog)}%)`;
     }
     return msg;
-  }
+  });
 }

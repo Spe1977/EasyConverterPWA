@@ -1,5 +1,33 @@
 import { ConversionFormat } from './conversion-format';
 
+export type StructuredDataPrimitiveArrayStrategy = 'join' | 'json';
+export type StructuredDataColumnNamingStrategy = 'dot' | 'snake_case';
+
+export class ConversionTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(`Conversion timed out after ${Math.round(timeoutMs / 1000)} seconds`);
+    this.name = 'ConversionTimeoutError';
+  }
+}
+
+export class ConversionCancelledError extends Error {
+  constructor() {
+    super('Conversion cancelled');
+    this.name = 'ConversionCancelledError';
+  }
+}
+
+export interface StructuredDataExportOptions {
+  collectionPath?: string | null;
+  primitiveArrayStrategy?: StructuredDataPrimitiveArrayStrategy;
+  columnNaming?: StructuredDataColumnNamingStrategy;
+}
+
+export interface StructuredDataExportProfile {
+  collectionPaths: string[];
+  defaultOptions: Required<StructuredDataExportOptions>;
+}
+
 /**
  * Risultato di una conversione
  */
@@ -36,6 +64,8 @@ export interface ConversionOptions {
   htmlMinify?: boolean; // Minify HTML output
   // Image options
   preserveExif?: boolean; // Preserve EXIF metadata in images
+  signal?: AbortSignal;
+  structuredData?: StructuredDataExportOptions;
   [key: string]: any;
 }
 

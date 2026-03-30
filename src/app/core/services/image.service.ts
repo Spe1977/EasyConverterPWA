@@ -76,12 +76,16 @@ export class ImageService {
   private async preserveExifData(sourceFile: File, targetBlob: Blob): Promise<Blob> {
     try {
       // Import piexifjs dinamicamente
-      const piexif = (await import('piexifjs')) as any;
+      const piexif = (await import('piexifjs')) as {
+        load(data: string): Record<string, unknown>;
+        dump(exifObj: Record<string, unknown>): string;
+        insert(exifBytes: string, dataUrl: string): string;
+      };
 
       // Leggi EXIF da source
       const sourceArrayBuffer = await sourceFile.arrayBuffer();
       const sourceDataUrl = this.arrayBufferToDataURL(sourceArrayBuffer, sourceFile.type);
-      let exifObj: any;
+      let exifObj: Record<string, unknown>;
 
       try {
         exifObj = piexif.load(sourceDataUrl);
@@ -112,9 +116,12 @@ export class ImageService {
    */
   private arrayBufferToDataURL(buffer: ArrayBuffer, mimeType: string): string {
     const bytes = new Uint8Array(buffer);
+    // Process in chunks to avoid stack overflow with large files
+    const chunkSize = 8192;
     let binary = '';
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]);
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      const chunk = bytes.subarray(i, Math.min(i + chunkSize, bytes.length));
+      binary += String.fromCharCode(...chunk);
     }
     const base64 = btoa(binary);
     return `data:${mimeType};base64,${base64}`;
@@ -413,7 +420,8 @@ export class ImageService {
    */
   dataURLtoBlob(dataURL: string): Blob {
     const arr = dataURL.split(',');
-    const mime = arr[0].match(/:(.*?);/)![1];
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    const mime = mimeMatch ? mimeMatch[1] : 'application/octet-stream';
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);

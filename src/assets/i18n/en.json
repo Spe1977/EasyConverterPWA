@@ -1,0 +1,154 @@
+{
+  "APP": {
+    "TITLE": "EasyConverter"
+  },
+  "HERO": {
+    "TITLE": "Convert Your Files",
+    "SUPPORTED_FORMATS": "Supported formats: PDF, TXT, MD, HTML, RTF, CSV, JSON, XML, YAML, XLSX, PNG, JPG, WEBP, EPUB"
+  },
+  "FILE_PICKER": {
+    "DROP_TEXT": "Drop file here or click to select",
+    "ACCEPTED_LABEL": "Accepted",
+    "MAX_SIZE_LABEL": "Max size",
+    "MAX_SIZE_VARIES_LABEL": "Upload limit",
+    "SIZE_LIMITS_HINT": "PDF: 25 MB • Images and spreadsheets: 15 MB • Text, data, and EPUB: 20 MB",
+    "FILE_TOO_LARGE_FOR_TYPE": "This file exceeds the limit for {{format}}. Maximum allowed: {{maxSize}}.",
+    "THIS_FILE_TYPE": "this file type",
+    "FILES_SELECTED": "{{count}} file(s) selected"
+  },
+  "FORMAT_SELECTOR": {
+    "FROM_LABEL": "From",
+    "TO_LABEL": "To",
+    "SELECT_SOURCE": "Select source format",
+    "SELECT_TARGET": "Select target format",
+    "SOURCE_MODAL_TITLE": "Select Source Format",
+    "TARGET_MODAL_TITLE": "Select Target Format",
+    "CLOSE_BUTTON": "Close",
+    "EMPTY_STATE": "Please select a source format first"
+  },
+  "CONVERSION": {
+    "SELECT_FORMATS_TITLE": "Select Formats",
+    "CONVERT_NOW_BUTTON": "Convert Now",
+    "CONVERT_SHARE_BUTTON": "Convert & Share",
+    "SELECTED_FILE_LABEL": "Selected File",
+    "CONVERTING": "Converting file...",
+    "CANCEL_BUTTON": "Cancel",
+    "TIMEOUT": "The conversion took too long and was stopped. Try a smaller file or a different format.",
+    "CANCELLED": "Conversion cancelled.",
+    "SUCCESS_HEADER": "Conversion Successful",
+    "SUCCESS_MESSAGE": "File converted successfully in {{duration}}!<br><br><strong>{{fileName}}</strong>",
+    "SUCCESS_MESSAGE_NO_DURATION": "File converted successfully!<br><br><strong>{{fileName}}</strong>",
+    "SUCCESS_OK": "OK",
+    "FAILED": "Conversion failed: {{message}}",
+    "FAILED_FALLBACK": "Conversion failed",
+    "UNKNOWN_ERROR": "Unknown error",
+    "SHARE_SUCCESS": "File shared successfully",
+    "SHARE_FAILED": "Failed to share: {{message}}"
+  },
+  "FILE_PREVIEW": {
+    "TITLE": "Input preview",
+    "STATS": "{{lines}} lines · {{chars}} chars",
+    "TRUNCATED": "Preview truncated to the first 1200 characters.",
+    "IMAGE_NOTE": "Local preview generated in the browser before conversion.",
+    "UNAVAILABLE_NOTE": "Preview is not available for this format. Conversion is still supported, but visual inspection requires the output format."
+  },
+  "QUALITY_FEEDBACK": {
+    "EXPECTED_EYEBROW": "Expected quality",
+    "RESULT_EYEBROW": "Last output",
+    "BLOCKING_TITLE": "Conversion blocked by preflight",
+    "BLOCKING_DETAIL": "This file needs corrections before it can be converted reliably.",
+    "REVIEW_TITLE": "Conversion needs review",
+    "LOSSLESS_TITLE": "Stable output expected",
+    "LOSSLESS_DETAIL": "The planned pipeline is lossless, so content should remain consistent after saving.",
+    "STRUCTURED_TITLE": "Reliable structured output",
+    "STRUCTURED_DETAIL": "The main structure should be preserved without manual fixes in most cases.",
+    "TEXT_ONLY_TITLE": "Text content preserved",
+    "TEXT_ONLY_DETAIL": "Expect readable content, but not layout, media, or advanced styling.",
+    "BEST_EFFORT_TITLE": "Output may degrade",
+    "BEST_EFFORT_DETAIL": "This conversion is useful but not faithful: structure or formatting may change noticeably.",
+    "TABLE_ONLY_TITLE": "Table-focused output",
+    "TABLE_ONLY_DETAIL": "This conversion prioritizes rows and columns. Content outside the table will not be represented well.",
+    "UNIFORM_DATA_TITLE": "Quality depends on data shape",
+    "UNIFORM_DATA_DETAIL": "The result is valid only if records and fields stay sufficiently uniform after flattening.",
+    "RESULT_TITLE": "Conversion completed",
+    "RESULT_DETAIL": "Output generated. Use final size and expected reliability to decide whether a quick manual review is needed.",
+    "RESULT_DURATION": "time {{duration}}"
+  },
+  "STRUCTURED_DATA_OPTIONS": {
+    "TITLE": "Structured data options",
+    "DESCRIPTION": "Control how JSON or XML is flattened before tabular export.",
+    "COLLECTION_LABEL": "Collection to export",
+    "COLLECTION_AUTO": "Auto-detect",
+    "ARRAY_STRATEGY_LABEL": "Primitive arrays",
+    "ARRAY_STRATEGY_JOIN": "Join with commas",
+    "ARRAY_STRATEGY_JSON": "Keep as JSON",
+    "COLUMN_NAMING_LABEL": "Column naming",
+    "COLUMN_NAMING_DOT": "Dot paths",
+    "COLUMN_NAMING_SNAKE": "snake_case"
+  },
+  "FEATURES": {
+    "FAST": {
+      "TITLE": "Fast",
+      "DESCRIPTION": "Lightning-fast conversions powered by your device"
+    },
+    "SECURE": {
+      "TITLE": "Secure",
+      "DESCRIPTION": "Your files never leave your device"
+    },
+    "OFFLINE": {
+      "TITLE": "Offline",
+      "DESCRIPTION": "Works perfectly without internet"
+    }
+  },
+  "FORMAT_CATEGORIES": {
+    "TEXT": "Text",
+    "DATA": "Data",
+    "DOCUMENT": "Document",
+    "IMAGE": "Image",
+    "OTHER": "Other"
+  },
+  "CONVERSION_RELIABILITY": {
+    "LOSSLESS": "Lossless",
+    "STRUCTURED": "Structured",
+    "TEXT-ONLY": "Text only",
+    "BEST-EFFORT": "Best effort",
+    "TABLE-ONLY": "Table only",
+    "REQUIRES-UNIFORM-DATA": "Uniform data"
+  },
+  "CONVERSION_VALIDATION": {
+    "UNSUPPORTED": "This conversion is not supported.",
+    "TEXT_ONLY": "Only text content will be preserved. Layout, styles, and embedded media may be lost.",
+    "BEST_EFFORT": "This conversion may lose formatting or structure. Review the result before sharing it.",
+    "TABLE_ONLY": "The output is optimized for tabular data and will generate a table-focused result.",
+    "REQUIRES_UNIFORM_DATA": "This conversion works best with uniform records that share the same fields.",
+    "INVALID_JSON": "The selected file is not valid JSON, so this conversion cannot start.",
+    "INVALID_XML": "The selected file is not valid XML, so this conversion cannot start.",
+    "JSON_ARRAY_OF_OBJECTS_REQUIRED": "This conversion requires a JSON array of objects, for example [{\"name\":\"Ada\"}].",
+    "JSON_UNIFORM_KEYS_REQUIRED": "This conversion requires JSON objects with the same fields in every row.",
+    "HTML_TABLE_REQUIRED": "Exporting HTML to CSV or XLSX requires at least one real HTML table with readable rows and cells.",
+    "HTML_TABLE_MERGED_CELLS": "This HTML table uses merged cells with rowspan or colspan. The export will flatten that structure, so review the output carefully.",
+    "HTML_TABLE_NESTED": "This HTML document contains nested tables. Only the outer table will be exported; nested table content is excluded from the tabular output.",
+    "HTML_TABLE_COMPLEXITY": "This HTML contains tables, and the selected target will flatten rows, columns, or merged cells. Review the output carefully.",
+    "STRUCTURED_TABULAR_DATA_REQUIRED": "This conversion requires uniform tabular records or a structure that can be flattened without nested arrays of objects.",
+    "STRUCTURED_DATA_NORMALIZED": "The content will be normalized into tabular columns with controlled flattening. Review final headers and values carefully.",
+    "PDF_TEXT_REQUIRED": "This PDF does not expose extractable text. If it comes from scans or images, text conversion cannot start reliably.",
+    "PDF_TEXT_LIMITED": "This PDF contains very little extractable text. The output may be incomplete or almost empty.",
+    "MULTI_STEP_REVIEW": "This conversion uses a multi-step pipeline already known to be fragile. Review the final structure and formatting carefully.",
+    "TXT_NO_TABULAR_STRUCTURE": "This text file does not contain enough lines to produce a meaningful CSV. At least two lines (header + data) are needed.",
+    "TXT_DELIMITER_UNCERTAIN": "No consistent delimiter was detected in this text file. The conversion will attempt best-effort parsing, but the result may need manual adjustment."
+  },
+  "FORMAT_DETECTION": {
+    "DETECTED_CONTENT": "Detected {{format}} content inside a .{{extension}} file",
+    "COULD_NOT_DETECT": "Could not detect file format"
+  },
+  "PWA_UPDATE": {
+    "NEW_VERSION": "New version available",
+    "NEW_VERSION_DETAIL": "A new version of EasyConverter is ready!",
+    "UPDATE_NOW": "Update Now",
+    "LATER": "Later",
+    "UPDATE_ERROR": "Error during update. Please try again later."
+  },
+  "LANGUAGE": {
+    "SWITCH_TOOLTIP": "Switch language"
+  }
+}

@@ -1,7 +1,14 @@
-import { Component, input, output, signal, computed, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, input, output, signal, computed, effect, inject } from '@angular/core';
+
 import { IonicModule } from '@ionic/angular';
-import { ConversionFormat, SUPPORTED_FORMATS, FormatInfo } from '@core/models/conversion-format';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import {
+  ConversionFormat,
+  ConversionReliability,
+  SUPPORTED_FORMATS,
+  FormatInfo,
+} from '@core/models/conversion-format';
+import { ConverterService } from '@core/services/converter.service';
 
 /**
  * Component per selezionare il formato sorgente e destinazione
@@ -10,11 +17,14 @@ import { ConversionFormat, SUPPORTED_FORMATS, FormatInfo } from '@core/models/co
 @Component({
   selector: 'app-format-selector',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [IonicModule, TranslateModule],
   templateUrl: './format-selector.component.html',
   styleUrls: ['./format-selector.component.scss'],
 })
-export class FormatSelectorComponent implements OnInit {
+export class FormatSelectorComponent {
+  private translate = inject(TranslateService);
+  private converterService = inject(ConverterService);
+
   // Inputs
   sourceFormat = input<ConversionFormat | null>(null);
   targetFormat = input<ConversionFormat | null>(null);
@@ -32,11 +42,7 @@ export class FormatSelectorComponent implements OnInit {
   showTargetModal = signal(false);
 
   // Computed
-  allFormats = computed(() => SUPPORTED_FORMATS);
-
-  sourceFormats = computed(() => {
-    return SUPPORTED_FORMATS;
-  });
+  readonly sourceFormats = SUPPORTED_FORMATS;
 
   targetFormats = computed(() => {
     const available = this.availableTargets();
@@ -47,12 +53,16 @@ export class FormatSelectorComponent implements OnInit {
   });
 
   // Grouped formats by category
-  groupedSourceFormats = computed(() => this.groupByCategory(this.sourceFormats()));
+  readonly groupedSourceFormats = this.groupByCategory(this.sourceFormats);
   groupedTargetFormats = computed(() => this.groupByCategory(this.targetFormats()));
 
-  ngOnInit(): void {
-    this.selectedSource.set(this.sourceFormat());
-    this.selectedTarget.set(this.targetFormat());
+  constructor() {
+    effect(() => {
+      this.selectedSource.set(this.sourceFormat());
+    });
+    effect(() => {
+      this.selectedTarget.set(this.targetFormat());
+    });
   }
 
   /**
@@ -115,23 +125,38 @@ export class FormatSelectorComponent implements OnInit {
   }
 
   /**
-   * Ottieni label categoria
+   * Ottieni label categoria tradotta
    */
   getCategoryLabel(category: string): string {
-    const labels: Record<string, string> = {
-      document: 'Documents',
-      spreadsheet: 'Spreadsheets',
-      pdf: 'PDF',
-      image: 'Images',
-      ebook: 'E-books',
+    const categoryMap: Record<string, string> = {
+      document: 'DOCUMENT',
+      spreadsheet: 'DATA',
+      pdf: 'DOCUMENT',
+      image: 'IMAGE',
+      ebook: 'DOCUMENT',
+      text: 'TEXT',
+      data: 'DATA',
     };
-    return labels[category] || category;
+    const translationKey = categoryMap[category] || 'OTHER';
+    return this.translate.instant(`FORMAT_CATEGORIES.${translationKey}`);
   }
 
   /**
    * Ottieni chiavi oggetto (per template)
    */
-  objectKeys(obj: any): string[] {
+  objectKeys(obj: Record<string, FormatInfo[]>): string[] {
     return Object.keys(obj);
+  }
+
+  getReliability(
+    source: ConversionFormat | null,
+    target: ConversionFormat
+  ): ConversionReliability | null {
+    return this.converterService.getConversionSupport(source, target)?.reliability ?? null;
+  }
+
+  getReliabilityLabel(reliability: ConversionReliability | null): string {
+    if (!reliability) return '';
+    return this.translate.instant(`CONVERSION_RELIABILITY.${reliability.toUpperCase()}`);
   }
 }

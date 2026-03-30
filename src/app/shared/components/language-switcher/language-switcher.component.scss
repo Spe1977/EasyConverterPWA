@@ -1,0 +1,37 @@
+.language-switcher-button {
+  --padding-start: 8px;
+  --padding-end: 8px;
+  margin: 0;
+
+  .language-flag {
+    font-size: 1.2rem;
+    margin-right: 4px;
+  }
+
+  .language-label {
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Mobile-first responsive design
+@media (max-width: 576px) {
+  .language-switcher-button {
+    .language-label {
+      font-size: 0.75rem;
+    }
+  }
+}

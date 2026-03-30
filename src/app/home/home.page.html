@@ -2,29 +2,33 @@
   <ion-toolbar color="primary">
     <ion-title>
       <ion-icon name="swap-horizontal-outline" class="title-icon"></ion-icon>
-      <span i18n="@@appTitle">EasyConverter</span>
+      <span>{{ 'APP.TITLE' | translate }}</span>
     </ion-title>
+    <ion-buttons slot="end">
+      <app-language-switcher></app-language-switcher>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true">
   <ion-header collapse="condense">
     <ion-toolbar>
-      <ion-title size="large" i18n="@@appTitle">EasyConverter</ion-title>
+      <ion-title size="large">{{ 'APP.TITLE' | translate }}</ion-title>
     </ion-toolbar>
   </ion-header>
 
   <div class="converter-container">
     <!-- Hero Section -->
     <div class="hero-section">
-      <h1 i18n="@@heroTitle">Convert Any File</h1>
-      <p i18n="@@heroSubtitle">Fast, secure, and 100% offline conversion</p>
+      <h1>{{ 'HERO.TITLE' | translate }}</h1>
+      <p>{{ 'HERO.SUPPORTED_FORMATS' | translate }}</p>
     </div>
 
     <!-- File Picker -->
     <div class="section">
       <app-file-picker
         [maxSize]="maxFileSize"
+        [maxSizeByCategory]="maxFileSizes"
         (fileSelected)="onFileSelected($event)"
         (fileError)="onFileError($event)"
       ></app-file-picker>
@@ -33,6 +37,12 @@
       @if (errorMessage()) {
         <div class="error-message" data-cy="error-message" role="alert">
           {{ errorMessage() }}
+        </div>
+      }
+
+      @if (detectedFormatHint()) {
+        <div class="error-message" data-cy="detected-format-hint" role="status">
+          {{ detectedFormatHint() }}
         </div>
       }
     </div>
@@ -44,7 +54,7 @@
           <ion-card-header>
             <ion-card-title>
               <ion-icon name="settings-outline"></ion-icon>
-              <span i18n="@@selectFormatsTitle">Select Formats</span>
+              <span>{{ 'CONVERSION.SELECT_FORMATS_TITLE' | translate }}</span>
             </ion-card-title>
           </ion-card-header>
           <ion-card-content>
@@ -56,6 +66,95 @@
               (sourceFormatChange)="onSourceFormatChange($event)"
               (targetFormatChange)="onTargetFormatChange($event)"
             ></app-format-selector>
+
+            @if (preflightMessage()) {
+              <div
+                class="conversion-validation-message"
+                [class.is-danger]="preflightSeverity() === 'danger'"
+                [attr.data-cy]="preflightBlocking() ? 'preflight-blocking' : 'preflight-warning'"
+                role="status"
+              >
+                {{ preflightMessage() }}
+              </div>
+            }
+
+            @if (qualityFeedback()) {
+              <div class="quality-feedback-card" [class.is-risk]="qualityFeedback()?.tone === 'risk'">
+                <div class="quality-feedback-header">
+                  <div>
+                    <p class="quality-feedback-eyebrow">{{ 'QUALITY_FEEDBACK.EXPECTED_EYEBROW' | translate }}</p>
+                    <h3>{{ qualityFeedback()?.title }}</h3>
+                  </div>
+                  @if (qualityFeedback()?.reliabilityLabel) {
+                    <span class="quality-badge">{{ qualityFeedback()?.reliabilityLabel }}</span>
+                  }
+                </div>
+                <p>{{ qualityFeedback()?.detail }}</p>
+              </div>
+            }
+
+            @if (showStructuredDataOptions()) {
+              <div class="structured-data-options" data-cy="structured-data-options">
+                <h3>{{ 'STRUCTURED_DATA_OPTIONS.TITLE' | translate }}</h3>
+                <p>{{ 'STRUCTURED_DATA_OPTIONS.DESCRIPTION' | translate }}</p>
+
+                @if (hasStructuredDataCollectionChoices()) {
+                  <ion-item lines="inset">
+                    <ion-label position="stacked">
+                      {{ 'STRUCTURED_DATA_OPTIONS.COLLECTION_LABEL' | translate }}
+                    </ion-label>
+                    <ion-select
+                      [value]="selectedStructuredDataCollectionPath()"
+                      interface="popover"
+                      (ionChange)="onStructuredDataCollectionPathChange($event.detail.value ?? null)"
+                    >
+                      <ion-select-option [value]="null">
+                        {{ 'STRUCTURED_DATA_OPTIONS.COLLECTION_AUTO' | translate }}
+                      </ion-select-option>
+                      @for (path of structuredDataCollectionPaths(); track path) {
+                        <ion-select-option [value]="path">{{ path }}</ion-select-option>
+                      }
+                    </ion-select>
+                  </ion-item>
+                }
+
+                <ion-item lines="inset">
+                  <ion-label position="stacked">
+                    {{ 'STRUCTURED_DATA_OPTIONS.ARRAY_STRATEGY_LABEL' | translate }}
+                  </ion-label>
+                  <ion-select
+                    [value]="structuredDataPrimitiveArrayStrategy()"
+                    interface="popover"
+                    (ionChange)="onStructuredDataPrimitiveArrayStrategyChange($event.detail.value)"
+                  >
+                    <ion-select-option value="join">
+                      {{ 'STRUCTURED_DATA_OPTIONS.ARRAY_STRATEGY_JOIN' | translate }}
+                    </ion-select-option>
+                    <ion-select-option value="json">
+                      {{ 'STRUCTURED_DATA_OPTIONS.ARRAY_STRATEGY_JSON' | translate }}
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+
+                <ion-item lines="none">
+                  <ion-label position="stacked">
+                    {{ 'STRUCTURED_DATA_OPTIONS.COLUMN_NAMING_LABEL' | translate }}
+                  </ion-label>
+                  <ion-select
+                    [value]="structuredDataColumnNaming()"
+                    interface="popover"
+                    (ionChange)="onStructuredDataColumnNamingChange($event.detail.value)"
+                  >
+                    <ion-select-option value="dot">
+                      {{ 'STRUCTURED_DATA_OPTIONS.COLUMN_NAMING_DOT' | translate }}
+                    </ion-select-option>
+                    <ion-select-option value="snake_case">
+                      {{ 'STRUCTURED_DATA_OPTIONS.COLUMN_NAMING_SNAKE' | translate }}
+                    </ion-select-option>
+                  </ion-select>
+                </ion-item>
+              </div>
+            }
           </ion-card-content>
         </ion-card>
       </div>
@@ -66,7 +165,7 @@
       <div class="section">
         <ion-button expand="block" size="large" [disabled]="!canConvert()" (click)="convert()" class="convert-button">
           <ion-icon name="shuffle-outline" slot="start"></ion-icon>
-          <span i18n="@@convertNowButton">Convert Now</span>
+          <span>{{ 'CONVERSION.CONVERT_NOW_BUTTON' | translate }}</span>
         </ion-button>
 
         <ion-button
@@ -77,7 +176,7 @@
           class="share-button"
         >
           <ion-icon name="share-social-outline" slot="start"></ion-icon>
-          <span i18n="@@convertShareButton">Convert & Share</span>
+          <span>{{ 'CONVERSION.CONVERT_SHARE_BUTTON' | translate }}</span>
         </ion-button>
       </div>
     }
@@ -87,7 +186,7 @@
       <div class="section">
         <ion-card class="file-info-card">
           <ion-card-header>
-            <ion-card-subtitle i18n="@@selectedFileLabel">Selected File</ion-card-subtitle>
+            <ion-card-subtitle>{{ 'CONVERSION.SELECTED_FILE_LABEL' | translate }}</ion-card-subtitle>
           </ion-card-header>
           <ion-card-content>
             <ion-list lines="none">
@@ -99,8 +198,66 @@
                 </ion-label>
               </ion-item>
             </ion-list>
+
+            @if (filePreview()) {
+              <div class="file-preview" data-cy="file-preview">
+                <div class="preview-header">
+                  <h3>{{ 'FILE_PREVIEW.TITLE' | translate }}</h3>
+                  @if (filePreview()?.kind === 'text') {
+                    <span>
+                      {{
+                        'FILE_PREVIEW.STATS'
+                          | translate: { lines: filePreview()?.lineCount || 0, chars: filePreview()?.charCount || 0 }
+                      }}
+                    </span>
+                  }
+                </div>
+
+                @if (filePreview()?.kind === 'image') {
+                  <div class="image-preview">
+                    <img [src]="filePreview()?.imageUrl" [alt]="selectedFile()?.name || 'Preview'" />
+                    <p>{{ filePreview()?.note }}</p>
+                  </div>
+                }
+
+                @if (filePreview()?.kind === 'text') {
+                  <div class="text-preview">
+                    <pre>{{ filePreview()?.content }}</pre>
+                    @if (filePreview()?.truncated) {
+                      <p>{{ 'FILE_PREVIEW.TRUNCATED' | translate }}</p>
+                    }
+                  </div>
+                }
+
+                @if (filePreview()?.kind === 'unavailable') {
+                  <div class="preview-unavailable">
+                    <ion-icon name="eye-off-outline"></ion-icon>
+                    <p>{{ filePreview()?.note }}</p>
+                  </div>
+                }
+              </div>
+            }
           </ion-card-content>
         </ion-card>
+      </div>
+    }
+
+    @if (lastConversionFeedback()) {
+      <div class="section">
+        <div class="quality-feedback-card is-result" [class.is-risk]="lastConversionFeedback()?.tone === 'risk'">
+          <div class="quality-feedback-header">
+            <div>
+              <p class="quality-feedback-eyebrow">{{ 'QUALITY_FEEDBACK.RESULT_EYEBROW' | translate }}</p>
+              <h3>{{ lastConversionFeedback()?.title }}</h3>
+            </div>
+            <span class="quality-badge">{{ lastConversionFeedback()?.outputSize }}</span>
+          </div>
+          <p>{{ lastConversionFeedback()?.detail }}</p>
+          <p class="result-meta">
+            {{ lastConversionFeedback()?.fileName }} ·
+            {{ 'QUALITY_FEEDBACK.RESULT_DURATION' | translate: { duration: lastConversionFeedback()?.duration } }}
+          </p>
+        </div>
       </div>
     }
 
@@ -112,22 +269,22 @@
             <ion-col size="12" size-md="4">
               <div class="feature-card">
                 <ion-icon name="flash-outline" color="primary"></ion-icon>
-                <h3 i18n="@@featureFastTitle">Fast</h3>
-                <p i18n="@@featureFastDescription">Lightning-fast conversions powered by your device</p>
+                <h3>{{ 'FEATURES.FAST.TITLE' | translate }}</h3>
+                <p>{{ 'FEATURES.FAST.DESCRIPTION' | translate }}</p>
               </div>
             </ion-col>
             <ion-col size="12" size-md="4">
               <div class="feature-card">
                 <ion-icon name="shield-checkmark-outline" color="success"></ion-icon>
-                <h3 i18n="@@featureSecureTitle">Secure</h3>
-                <p i18n="@@featureSecureDescription">Your files never leave your device</p>
+                <h3>{{ 'FEATURES.SECURE.TITLE' | translate }}</h3>
+                <p>{{ 'FEATURES.SECURE.DESCRIPTION' | translate }}</p>
               </div>
             </ion-col>
             <ion-col size="12" size-md="4">
               <div class="feature-card">
                 <ion-icon name="cloud-offline-outline" color="tertiary"></ion-icon>
-                <h3 i18n="@@featureOfflineTitle">Offline</h3>
-                <p i18n="@@featureOfflineDescription">Works perfectly without internet</p>
+                <h3>{{ 'FEATURES.OFFLINE.TITLE' | translate }}</h3>
+                <p>{{ 'FEATURES.OFFLINE.DESCRIPTION' | translate }}</p>
               </div>
             </ion-col>
           </ion-row>
@@ -143,4 +300,13 @@
     [message]="convertingFileMessage"
     [showProgress]="true"
   ></app-progress-indicator>
+
+  @if (isConverting()) {
+    <div class="cancel-conversion-container">
+      <ion-button fill="clear" color="danger" size="small" (click)="cancelConversion()">
+        <ion-icon name="close-circle-outline" slot="start"></ion-icon>
+        <span>{{ 'CONVERSION.CANCEL_BUTTON' | translate }}</span>
+      </ion-button>
+    </div>
+  }
 </ion-content>
