@@ -12,7 +12,7 @@ EasyConverter is a client-side file conversion PWA built with Angular 21, Ionic 
 - **Build:** `npm run build` (output: `www/`)
 - **Unit tests:** `npm test` (Karma + Jasmine, Chrome)
 - **Single test file:** `npx ng test --include='**/converter.service.spec.ts'`
-- **Lint:** `npm run lint` (ESLint 9 flat config via `.eslintrc.json` compat bridge)
+- **Lint:** `npm run lint` (ESLint 9 flat config via `eslint.config.mjs`)
 - **Format:** `npm run format` (Prettier)
 - **Format check:** `npm run format:check`
 - **E2E (Playwright):** `npm run e2e:offline` (requires built app in `www/`, serves on port 8080)
@@ -66,7 +66,7 @@ Uses Angular signals (`signal()`) in `HomePage` for all UI state — no NgRx or 
 
 ### i18n
 
-Uses `@ngx-translate/core` with JSON translation files in `src/assets/i18n/`. Angular's built-in `$localize` is also used for some static messages.
+Uses `@ngx-translate/core` with JSON translation files in `src/assets/i18n/` (EN/IT). All strings use `TranslateService.instant()` or the `translate` pipe — no `$localize`.
 
 ### Build Configuration
 

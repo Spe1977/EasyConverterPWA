@@ -50,7 +50,7 @@ Regola: librerie pesanti via `dynamic import` con cache applicativa.
 
 ## Stato Verificato
 
-Verifica: `2026-03-30` (post P5.3.4 completamento)
+Verifica: `2026-03-30` (post P5.6.1 completamento)
 
 - `lint`: ok
 - `test`: `193/193` success
@@ -59,37 +59,11 @@ Verifica: `2026-03-30` (post P5.3.4 completamento)
 - `E2E real-conversions`: `12/12` pass su Chromium, Firefox, WebKit (36 totali)
 - `E2E offline-conversions`: `10/10` pass su Chromium, Firefox; WebKit skip (SW limitation)
 
-### Warning Residui
-
-- Log errore atteso in spec che simula fallimento PDF (suite verde)
-
 ### Sicurezza
 
 - **0 vulnerabilità** — xlsx aggiornato a 0.20.3 (da CDN SheetJS, fix Prototype Pollution + ReDoS)
-- `tar` via `@capacitor/cli`: risolta con aggiornamento a 8.3.0
-
-### Nota Operativa
-
-La working tree può contenere modifiche locali non consolidate; evitare reset distruttivi.
-
-### Verifica Locale P5.4
-
-- `home.page.spec.ts`: `6/6` success
-- `build production`: ok
-- `ng lint`: non eseguibile nel runner corrente per errore Angular CLI su version detection npm (`Invalid semver version for npm: ""`)
-
-### Verifica Locale P5.6.1
-
-- `ng test --watch=false --browsers=ChromeHeadless`: `193/193` success
-- `ng lint`: ok
-- `build production`: ok
-
-### Verifica Locale P5.5
-
-- `ng test --watch=false --browsers=ChromeHeadless --include src/app/core/services/html.service.spec.ts --include src/app/shared/components/file-picker/file-picker.component.spec.ts --include src/app/home/home.page.spec.ts --include src/app/core/services/converter.service.spec.ts`: `177/177` success
-- `npx playwright test playwright/real-conversions.spec.ts -g "HTML → CSV neutralizes spreadsheet formulas"`: `2` pass (`chromium`, `firefox`), `1` skip (`webkit`)
-- `ng lint`: ok
-- `build production`: ok
+- DOMPurify su tutti i flussi HTML, formula injection mitigata in CSV/XLSX
+- CSP e security headers via Cloudflare Pages `_headers`
 
 ## Comportamento Fissato dai Test
 
@@ -276,7 +250,7 @@ Conclusione operativa: le conversioni e l'interazione UI sono ora verificate E2E
 5.5 ~~Hardening bugfix e sicurezza post-review~~ COMPLETATO — sanitizzazione HTML resa effettiva e di default nei flussi che producono HTML riusabile da input non fidato (`HTML -> EPUB/PDF/RTF/MD`, `EPUB -> HTML/MD/PDF/RTF`, wrapper `processHtmlOptions` con preservazione del documento completo), formula injection mitigata in export `CSV/XLSX` neutralizzando celle stringa che iniziano con `=`, `+`, `-`, `@`, integrazione `DOMPurify` corretta in `html.service` con `ALLOWED_ATTR` conforme e supporto robusto per documenti HTML completi, reset del file picker corretto azzerando anche il valore reale dell'`<input type="file">`. Regressioni coperte con test unitari mirati (`HtmlService`, `ConverterService`, `FilePickerComponent`) ed E2E Playwright su `HTML -> CSV`.
 5.6 Completamento i18n
 5.6.1 ~~Completare traduzioni EN/IT~~ COMPLETATO — eliminate tutte le stringhe hardcoded residue dall'intera app e coperte con chiavi `@ngx-translate` nei file JSON `src/assets/i18n/en.json` e `src/assets/i18n/it.json`. Stringhe migrate: alert successo conversione (header, messaggio con durata, bottone OK), messaggi errore conversione/condivisione con interpolazione, hint format detection, messaggio "Converting file...", selezione multipla file picker, gestione tradotta di timeout e cancellazione conversione. Componente `UpdateNotificationComponent` migrato da stringhe italiane hardcoded a pipe `translate` usando le chiavi `PWA_UPDATE.*` già esistenti più nuove chiavi per dettaglio e errore. Rimosso uso di `$localize` a favore di `TranslateService.instant()` uniforme. 193/193 test, lint ok, build production ok.
-5.6.2 Deploy Cloudflare Pages — deploy production su Cloudflare Pages. I file di configurazione (`_headers`, `_redirects`) sono già presenti in `src/assets/`. Configurare il progetto Cloudflare, collegare il repository, verificare build command (`npm run build`), output directory (`www/`), e validare HTTPS, caching, Service Worker e header di sicurezza in produzione.
+5.6.2 ~~Deploy Cloudflare Pages~~ IN CORSO — codice pushato su `origin/master` (commit `a3d53e5`), file di configurazione `_headers` e `_redirects` inclusi nel build output `www/`. Deploy manuale da eseguire su Cloudflare Pages dashboard con: repository `Spe1977/EasyConverterPWA`, branch `master`, build command `npm run build`, output directory `www/`, Node.js 20+. Post-deploy: validare HTTPS, caching, Service Worker e header di sicurezza in produzione.
 5.7 Validazione Safari/iOS (post-deploy)
 5.7.1 Smoke-test Safari/iOS — test manuale su Safari desktop e iOS reale (o BrowserStack) delle aree a rischio: download file (`<a download>` + Blob URL), share (`navigator.share({ files })`), installazione PWA, funzionamento offline con Service Worker, aggiornamento PWA. Documentare eventuali bug e workaround necessari.
 5.7.2 Fix download/share Safari — applicare i fix emersi dallo smoke-test 5.7.1: gestione fallback download per Safari/iOS (es. `window.open` se `<a download>` non funziona), verifica `navigator.canShare({ files })` prima di invocare `navigator.share`, `revokeObjectURL` differita per compatibilità Safari.
