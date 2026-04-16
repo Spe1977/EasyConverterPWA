@@ -12,7 +12,8 @@
           "/index.html",
           "/manifest.webmanifest",
           "/*.css",
-          "/*.js"
+          "/*.js",
+          "/assets/pdf.worker.min.mjs"
         ]
       }
     },
@@ -25,14 +26,22 @@
           "/**/*.(svg|cur|jpg|jpeg|png|apng|webp|avif|gif|otf|ttf|woff|woff2)"
         ]
       }
+    },
+    {
+      "name": "i18n",
+      "installMode": "prefetch",
+      "updateMode": "prefetch",
+      "resources": {
+        "files": [
+          "/assets/i18n/*.json"
+        ]
+      }
     }
   ],
   "dataGroups": [
     {
       "name": "pdf-libraries",
       "urls": [
-        "**/pdf.worker.min.js",
-        "**/pdf.worker.min.mjs",
         "**/pdfjs-dist/**"
       ],
       "cacheConfig": {

@@ -138,7 +138,18 @@ export class ConverterService {
       { target: ConversionFormat.TXT, reliability: 'text-only' },
       { target: ConversionFormat.BASE64, reliability: 'lossless' },
     ],
-    [ConversionFormat.ODS]: [],
+    [ConversionFormat.ODS]: [
+      { target: ConversionFormat.CSV, reliability: 'structured' },
+      { target: ConversionFormat.JSON, reliability: 'structured' },
+      { target: ConversionFormat.XLSX, reliability: 'structured' },
+      { target: ConversionFormat.YAML, reliability: 'structured' },
+      { target: ConversionFormat.XML, reliability: 'structured' },
+      { target: ConversionFormat.HTML, reliability: 'table-only' },
+      { target: ConversionFormat.MD, reliability: 'table-only' },
+      { target: ConversionFormat.PDF, reliability: 'best-effort' },
+      { target: ConversionFormat.TXT, reliability: 'text-only' },
+      { target: ConversionFormat.BASE64, reliability: 'lossless' },
+    ],
     [ConversionFormat.YAML]: [
       { target: ConversionFormat.JSON, reliability: 'structured' },
       { target: ConversionFormat.BASE64, reliability: 'lossless' },
@@ -1173,7 +1184,8 @@ export class ConverterService {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = () => reject(reader.error ?? new Error('Failed to read file as text'));
+      reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsText(file);
     });
   }
@@ -1182,7 +1194,9 @@ export class ConverterService {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = reject;
+      reader.onerror = () =>
+        reject(reader.error ?? new Error('Failed to read file as ArrayBuffer'));
+      reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsArrayBuffer(file);
     });
   }

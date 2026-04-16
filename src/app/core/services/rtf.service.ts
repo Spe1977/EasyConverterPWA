@@ -453,7 +453,6 @@ export class RtfService {
           case 'ansicpg':
           case 'deff':
           case 'deflang':
-          case 'uc':
           case 'viewkind':
             // Document-level control words — skip
             break;

@@ -231,6 +231,7 @@ export class CsvService {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
       reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+      reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsText(file, finalEncoding);
     });
   }
