@@ -141,21 +141,32 @@ export class PdfService {
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
     let fullText = '';
+    const failedPages: number[] = [];
 
-    // Estrai testo da ogni pagina
+    // Estrai testo da ogni pagina — isola le pagine corrotte così da
+    // non perdere l'intero documento se una singola pagina fallisce.
     for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const textContent = await page.getTextContent();
+      try {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
 
-      if (!preserveFormatting) {
-        // Modalità semplice: concatena tutto il testo
-        const pageText = textContent.items.map((item: any) => item.str).join(' ');
-        fullText += pageText + '\n\n';
-      } else {
-        // Modalità avanzata: preserva formattazione
-        const pageText = this.extractFormattedText(textContent);
-        fullText += pageText + '\n\n';
+        if (!preserveFormatting) {
+          // Modalità semplice: concatena tutto il testo
+          const pageText = textContent.items.map((item: any) => item.str).join(' ');
+          fullText += pageText + '\n\n';
+        } else {
+          // Modalità avanzata: preserva formattazione
+          const pageText = this.extractFormattedText(textContent);
+          fullText += pageText + '\n\n';
+        }
+      } catch (pageError) {
+        failedPages.push(i);
+        console.warn(`PDF page ${i} could not be extracted:`, pageError);
       }
+    }
+
+    if (failedPages.length > 0) {
+      fullText += `\n[Pagine non leggibili: ${failedPages.join(', ')}]\n`;
     }
 
     return fullText.trim();
@@ -280,6 +291,20 @@ export class PdfService {
 
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    return this.renderPageToBlob(pdf, pageNumber, scale, targetWidth);
+  }
+
+  /**
+   * Renderizza una pagina PDF già caricata in Blob PNG.
+   * Riutilizzabile da convertPdfToImages senza riparsare il file.
+   */
+  private async renderPageToBlob(
+    pdf: any,
+    pageNumber: number,
+    scale: number | null,
+    targetWidth: number
+  ): Promise<Blob> {
     const page = await pdf.getPage(pageNumber);
 
     // Se scale non è specificato, calcola DPI adattivo
@@ -296,21 +321,27 @@ export class PdfService {
     canvas.height = viewport.height;
     canvas.width = viewport.width;
 
-    await page.render({
-      canvasContext: context,
-      viewport: viewport,
-      canvas: canvas,
-    } as any).promise;
+    try {
+      await page.render({
+        canvasContext: context,
+        viewport: viewport,
+        canvas: canvas,
+      } as any).promise;
 
-    return new Promise((resolve, reject) => {
-      canvas.toBlob((blob) => {
-        if (blob) {
-          resolve(blob);
-        } else {
-          reject(new Error('Failed to convert canvas to blob'));
-        }
-      }, 'image/png');
-    });
+      return await new Promise<Blob>((resolve, reject) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            reject(new Error('Failed to convert canvas to blob'));
+          }
+        }, 'image/png');
+      });
+    } finally {
+      // Libera le risorse del canvas (importante su mobile / sequenze lunghe)
+      canvas.width = 0;
+      canvas.height = 0;
+    }
   }
 
   /**
@@ -349,13 +380,15 @@ export class PdfService {
     const pdfjsLib = await import('pdfjs-dist');
     (pdfjsLib as any).GlobalWorkerOptions.workerSrc = '/assets/pdf.worker.min.mjs';
 
+    // Parse il PDF una sola volta e renderizza tutte le pagine dalla stessa istanza
+    // (prima veniva riparsato per ogni pagina: O(N²) su documenti lunghi).
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
     const images: Blob[] = [];
 
     for (let i = 1; i <= pdf.numPages; i++) {
-      const image = await this.convertPdfPageToImage(file, i, scale, targetWidth);
+      const image = await this.renderPageToBlob(pdf, i, scale, targetWidth);
       images.push(image);
     }
 

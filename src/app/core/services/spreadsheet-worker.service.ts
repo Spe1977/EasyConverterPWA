@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, OnDestroy } from '@angular/core';
 import {
   SpreadsheetWorkerJsonRow,
   SpreadsheetWorkerPayload,
@@ -9,8 +9,9 @@ import {
 @Injectable({
   providedIn: 'root',
 })
-export class SpreadsheetWorkerService {
+export class SpreadsheetWorkerService implements OnDestroy {
   private workerPromise?: Promise<Worker | null>;
+  private activeWorker?: Worker;
   private readonly pendingRequests = new Map<
     string,
     {
@@ -22,6 +23,16 @@ export class SpreadsheetWorkerService {
   private requestCounter = 0;
   private xlsxModule?: typeof import('xlsx');
   private static readonly REQUEST_TIMEOUT_MS = 120_000; // 2 minutes per request
+
+  ngOnDestroy(): void {
+    // Libera eventuali richieste pendenti prima di terminare il worker
+    this.rejectAllPending(new Error('SpreadsheetWorkerService destroyed'));
+    if (this.activeWorker) {
+      this.activeWorker.terminate();
+      this.activeWorker = undefined;
+    }
+    this.workerPromise = undefined;
+  }
 
   async convertRowsToXlsx(rows: SpreadsheetWorkerJsonRow[]): Promise<ArrayBuffer> {
     return this.execute({ type: 'rows-to-xlsx', rows }) as Promise<ArrayBuffer>;
@@ -118,9 +129,13 @@ export class SpreadsheetWorkerService {
           event.error ?? new Error(event.message || 'Spreadsheet worker error')
         );
         worker.terminate();
+        if (this.activeWorker === worker) {
+          this.activeWorker = undefined;
+        }
         this.disableWorker();
       });
 
+      this.activeWorker = worker;
       return worker;
     } catch {
       return null;

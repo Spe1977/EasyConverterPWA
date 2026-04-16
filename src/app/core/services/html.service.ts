@@ -157,14 +157,34 @@ export class HtmlService {
       minified = minified.replace(/<!--(?!\[if\s)(?!<!)[^\[].*?-->/gs, '');
     }
 
-    // Collapse whitespace (conservativo)
+    // Collapse whitespace (conservativo) — preservando <pre> e <code> dove lo
+    // spazio è semanticamente significativo (es. snippet di codice).
     if (options.collapseWhitespace ?? true) {
+      const preserved: string[] = [];
+      const placeholder = (i: number): string => `\u0000PRESERVED_${i}\u0000`;
+
+      // Estrai pre/code/textarea/script/style e rimpiazza con placeholder
+      minified = minified.replace(
+        /<(pre|code|textarea|script|style)\b[^>]*>[\s\S]*?<\/\1>/gi,
+        (match) => {
+          const token = placeholder(preserved.length);
+          preserved.push(match);
+          return token;
+        }
+      );
+
       // Rimuovi spazi multipli
       minified = minified.replace(/\s+/g, ' ');
       // Rimuovi spazi prima/dopo tag
       minified = minified.replace(/>\s+</g, '><');
       // Rimuovi spazi a inizio/fine linee
       minified = minified.replace(/^\s+|\s+$/gm, '');
+
+      // Ripristina i blocchi preservati
+      minified = minified.replace(
+        /\u0000PRESERVED_(\d+)\u0000/g,
+        (_, i: string) => preserved[Number(i)] ?? ''
+      );
     }
 
     return minified.trim();

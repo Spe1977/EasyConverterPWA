@@ -79,7 +79,8 @@ export class FileSystemService implements OnDestroy {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = () => reject(reader.error ?? new Error('Failed to read file as text'));
+      reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsText(file);
     });
   }
@@ -93,7 +94,9 @@ export class FileSystemService implements OnDestroy {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as ArrayBuffer);
-      reader.onerror = reject;
+      reader.onerror = () =>
+        reject(reader.error ?? new Error('Failed to read file as ArrayBuffer'));
+      reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsArrayBuffer(file);
     });
   }
@@ -107,7 +110,8 @@ export class FileSystemService implements OnDestroy {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = () => reject(reader.error ?? new Error('Failed to read file as data URL'));
+      reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsDataURL(file);
     });
   }
@@ -181,7 +185,8 @@ export class FileSystemService implements OnDestroy {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onloadend = () => resolve(reader.result as string);
-      reader.onerror = reject;
+      reader.onerror = () => reject(reader.error ?? new Error('Failed to encode blob as base64'));
+      reader.onabort = () => reject(new Error('Blob read aborted'));
       reader.readAsDataURL(blob);
     });
   }

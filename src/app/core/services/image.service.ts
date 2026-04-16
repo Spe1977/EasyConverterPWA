@@ -335,6 +335,10 @@ export class ImageService {
       const mimeType = this.getMimeType(format);
       canvas.toBlob(
         (blob) => {
+          // Libera memoria del canvas: importante per mobile e per conversioni
+          // sequenziali (evita accumulo fino al GC).
+          canvas.width = 0;
+          canvas.height = 0;
           if (blob) {
             resolve(blob);
           } else {
@@ -376,9 +380,18 @@ export class ImageService {
    * Rileva il formato dell'immagine dal tipo MIME
    */
   private detectImageFormat(file: File): ConversionFormat {
-    if (file.type === 'image/png') return ConversionFormat.PNG;
-    if (file.type === 'image/jpeg') return ConversionFormat.JPEG;
-    if (file.type === 'image/webp') return ConversionFormat.WEBP;
+    const mime = (file.type || '').toLowerCase();
+    if (mime === 'image/png') return ConversionFormat.PNG;
+    // Alcuni browser / sistemi esportano .jpg con MIME non-standard "image/jpg"
+    if (mime === 'image/jpeg' || mime === 'image/jpg') return ConversionFormat.JPEG;
+    if (mime === 'image/webp') return ConversionFormat.WEBP;
+
+    // Fallback sull'estensione quando il MIME è vuoto (es. drag&drop su Safari iOS)
+    const name = file.name.toLowerCase();
+    if (name.endsWith('.png')) return ConversionFormat.PNG;
+    if (name.endsWith('.jpg') || name.endsWith('.jpeg')) return ConversionFormat.JPEG;
+    if (name.endsWith('.webp')) return ConversionFormat.WEBP;
+
     return ConversionFormat.PNG; // Default
   }
 
