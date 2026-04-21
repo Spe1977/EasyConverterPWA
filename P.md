@@ -172,11 +172,11 @@ Razionale: in una PWA client-side il collo di bottiglia è il picco di memoria, 
 
 `TXT ↔ MD ↔ HTML` · `TXT/MD/HTML → PDF` · `CSV ↔ JSON ↔ XLSX` · `XML ↔ JSON ↔ YAML` · `RTF → HTML → MD/TXT` · `EPUB → TXT/HTML/MD` · `PNG/JPEG/WEBP → PDF` · `BASE64 ↔ TXT/HTML/JSON/XML/YAML`
 
-Pipeline: `XML → JSON → YAML` · `XML → JSON → CSV` · `RTF → HTML → PDF` · `EPUB → HTML → PDF` · `MD → HTML → PDF`
+Pipeline: `XML → JSON → YAML` · `XML → JSON → CSV` · `YAML → JSON → XML` · `RTF → HTML → PDF` · `EPUB → HTML → PDF` · `MD → HTML → PDF` · `MD → HTML → RTF`
 
 ### Medio Valore
 
-`HTML → CSV/XLSX` (solo tabelle vere) · `JSON → CSV/XLSX` (flattening controllato) · `XLSX → MD/HTML/PDF` ✅ · `CSV → MD/PDF` ✅ · `PDF → TXT/MD/HTML` (text-only) · `EPUB → PDF` (resa testuale) · `TXT → CSV` (delimiter detection) ✅ · `ODS` in lettura
+`HTML → CSV/XLSX` (solo tabelle vere) · `JSON → CSV/XLSX` (flattening controllato) · `XLSX → MD/HTML/PDF` ✅ · `CSV → MD/PDF` ✅ · `PDF → TXT/MD/HTML` (text-only) · `EPUB → PDF` (resa testuale) · `TXT → CSV` (delimiter detection) ✅ · `ODS` in lettura · `MD → RTF` ✅ · `YAML → XML/TXT` ✅ · `XML → TXT` ✅
 
 ### Da Evitare
 
@@ -251,6 +251,7 @@ Conclusione operativa: le conversioni e l'interazione UI sono ora verificate E2E
 5.6 Completamento i18n
 5.6.1 ~~Completare traduzioni EN/IT~~ COMPLETATO — eliminate tutte le stringhe hardcoded residue dall'intera app e coperte con chiavi `@ngx-translate` nei file JSON `src/assets/i18n/en.json` e `src/assets/i18n/it.json`. Stringhe migrate: alert successo conversione (header, messaggio con durata, bottone OK), messaggi errore conversione/condivisione con interpolazione, hint format detection, messaggio "Converting file...", selezione multipla file picker, gestione tradotta di timeout e cancellazione conversione. Componente `UpdateNotificationComponent` migrato da stringhe italiane hardcoded a pipe `translate` usando le chiavi `PWA_UPDATE.*` già esistenti più nuove chiavi per dettaglio e errore. Rimosso uso di `$localize` a favore di `TranslateService.instant()` uniforme. 193/193 test, lint ok, build production ok.
 5.6.2 ~~Deploy Cloudflare Pages~~ IN CORSO — codice pushato su `origin/master` (commit `a3d53e5`), file di configurazione `_headers` e `_redirects` inclusi nel build output `www/`. Deploy manuale da eseguire su Cloudflare Pages dashboard con: repository `Spe1977/EasyConverterPWA`, branch `master`, build command `npm run build`, output directory `www/`, Node.js 20+. Post-deploy: validare HTTPS, caching, Service Worker e header di sicurezza in produzione.
+5.8 ~~Hardening post-review e ampliamento matrice conversioni~~ COMPLETATO — (1) Sicurezza: escape XML dei metadati EPUB generati (`language`, `isbn`, `pubdate`) che chiude un vettore di XML injection tramite campi metadata controllati dall'utente; estrazione testo EPUB/HTML riscritta con `DOMParser` in documento isolato al posto di `innerHTML` su live DOM, così payload tipo `<img src=x onerror=...>` non possono più innescare fetch o handler durante la conversione; validazione MIME del data URI in `Base64Service` allineata a RFC 6838 (rifiuto di `data:javascript:...`); filtro `__proto__`/`constructor`/`prototype` e copia iterativa in `flattenTabularRecord` per chiudere prototype pollution via JSON/XML crafted. (2) Bug: strip del BOM UTF-8 in `readFileAsText` (contaminava la prima cella CSV / prima riga MD); `extractNamespaces` ora supporta sia apici doppi che singoli come da spec XML. (3) Nuove conversioni: `MD → RTF` (via HTML intermedio, best-effort), `YAML → XML` (via JSON intermedio, structured), `YAML → TXT` e `XML → TXT` (text-only human-readable). `npm run lint`, `npm run format:check` e `tsc --noEmit` puliti.
 5.7 Validazione Safari/iOS (post-deploy)
 5.7.1 Smoke-test Safari/iOS — test manuale su Safari desktop e iOS reale (o BrowserStack) delle aree a rischio: download file (`<a download>` + Blob URL), share (`navigator.share({ files })`), installazione PWA, funzionamento offline con Service Worker, aggiornamento PWA. Documentare eventuali bug e workaround necessari.
 5.7.2 Fix download/share Safari — applicare i fix emersi dallo smoke-test 5.7.1: gestione fallback download per Safari/iOS (es. `window.open` se `<a download>` non funziona), verifica `navigator.canShare({ files })` prima di invocare `navigator.share`, `revokeObjectURL` differita per compatibilità Safari.

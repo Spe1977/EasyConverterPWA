@@ -5,7 +5,7 @@ Client-side file conversion PWA. All conversions run entirely in the browser —
 ## Features
 
 - **16 formats** supported: TXT, MD, HTML, RTF, CSV, JSON, XLSX, ODS, YAML, XML, Base64, PDF, PNG, JPEG, WEBP, EPUB
-- **85+ conversion combinations** with reliability classification and preflight warnings
+- **89+ conversion combinations** with reliability classification and preflight warnings
 - **100% client-side** — your files never leave the browser
 - **Offline-first** — installable PWA with Service Worker caching
 - **Bilingual** — English and Italian with runtime language switching
@@ -18,14 +18,14 @@ Client-side file conversion PWA. All conversions run entirely in the browser —
 | Source | Targets                                          |
 | ------ | ------------------------------------------------ |
 | TXT    | MD, HTML, PDF, CSV, Base64                       |
-| MD     | TXT, HTML, PDF, Base64, EPUB                     |
+| MD     | TXT, HTML, RTF, PDF, EPUB, Base64                |
 | HTML   | TXT, MD, PDF, CSV, XLSX, RTF, Base64, EPUB       |
 | RTF    | TXT, HTML, MD, PDF, Base64                       |
 | CSV    | JSON, XLSX, TXT, MD, HTML, PDF, Base64, ODS, XML |
 | JSON   | CSV, XLSX, HTML, TXT, YAML, XML, Base64          |
 | XLSX   | CSV, JSON, TXT, MD, HTML, PDF, Base64, ODS, XML  |
-| YAML   | JSON, XML                                        |
-| XML    | JSON, YAML, CSV, XLSX, HTML, TXT                 |
+| YAML   | JSON, XML, TXT, Base64                           |
+| XML    | JSON, YAML, TXT, CSV, XLSX, HTML, Base64         |
 | Base64 | TXT                                              |
 | PDF    | TXT, MD, HTML, PNG, JPEG, WEBP                   |
 | PNG    | JPEG, WEBP, PDF, Base64                          |
