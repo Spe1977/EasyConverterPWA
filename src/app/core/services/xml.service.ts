@@ -313,13 +313,13 @@ export class XmlService {
   extractNamespaces(xml: string): Map<string, string> {
     const namespaces = new Map<string, string>();
 
-    // Regex per xmlns declarations
-    const nsRegex = /xmlns(?::([a-zA-Z0-9]+))?="([^"]*)"/g;
+    // Accetta sia virgolette doppie che apici singoli, entrambi validi in XML.
+    const nsRegex = /xmlns(?::([a-zA-Z0-9]+))?=(?:"([^"]*)"|'([^']*)')/g;
     let match;
 
     while ((match = nsRegex.exec(xml)) !== null) {
       const prefix = match[1] || 'default';
-      const uri = match[2];
+      const uri = match[2] ?? match[3] ?? '';
       namespaces.set(prefix, uri);
     }
 

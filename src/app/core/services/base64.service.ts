@@ -99,11 +99,15 @@ export class Base64Service {
       let cleanBase64 = base64.replace(/\s/g, '');
       let mimeType = options.mimeType;
 
-      // Detect e rimuovi data URI prefix
-      const dataUriMatch = cleanBase64.match(/^data:([^;]+);base64,(.+)$/);
+      // Detect e rimuovi data URI prefix. Il MIME type deve rispettare il
+      // formato RFC 6838 (tipo/sottotipo); ciò blocca payload tipo
+      // "data:javascript:;base64,..." prima che finiscano nel Blob.
+      const dataUriMatch = cleanBase64.match(/^data:([a-z]+\/[a-z0-9\-+.]+);base64,(.+)$/i);
       if (dataUriMatch) {
         mimeType = mimeType || dataUriMatch[1];
         cleanBase64 = dataUriMatch[2];
+      } else if (/^data:/i.test(cleanBase64)) {
+        throw new Error('Invalid data URI format');
       }
 
       // Decode Base64 to ArrayBuffer
