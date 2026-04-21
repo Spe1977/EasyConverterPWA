@@ -71,14 +71,20 @@ export class FileSystemService implements OnDestroy {
   }
 
   /**
-   * Legge un file come testo
+   * Legge un file come testo.
+   * Rimuove il BOM UTF-8 iniziale (U+FEFF) se presente: FileReader non lo
+   * strappa in modo affidabile su tutti i browser e, se lasciato, si
+   * trascina nella prima cella dei CSV o nella prima riga dei MD/HTML.
    * @param file File da leggere
    * @returns Contenuto del file come stringa
    */
   async readFileAsText(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        const text = reader.result as string;
+        resolve(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+      };
       reader.onerror = () => reject(reader.error ?? new Error('Failed to read file as text'));
       reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsText(file);

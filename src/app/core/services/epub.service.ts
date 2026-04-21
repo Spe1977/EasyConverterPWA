@@ -270,20 +270,20 @@ export class EpubService {
   }
 
   /**
-   * Estrae testo semplice da EPUB
+   * Estrae testo semplice da EPUB.
+   * Usa DOMParser (documento isolato) invece di innerHTML per evitare il
+   * caricamento di risorse remote e l'esecuzione di handler come onerror su
+   * contenuti non attendibili contenuti nell'EPUB.
    * @param file File EPUB
    * @returns Testo estratto
    */
   async extractTextFromEpub(file: File): Promise<string> {
     const html = await this.extractHtmlFromEpub(file);
-    const tempDiv = document.createElement('div');
-    // HTML proviene dalla nostra estrazione EPUB interna, non da input utente esterno
-    tempDiv.innerHTML = html;
-    // Rimuovi i tag <style> per evitare che il CSS finisca nel testo estratto
-    for (const style of Array.from(tempDiv.querySelectorAll('style'))) {
-      style.remove();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    for (const node of Array.from(doc.querySelectorAll('style, script'))) {
+      node.remove();
     }
-    return tempDiv.textContent || tempDiv.innerText || '';
+    return doc.body?.textContent ?? '';
   }
 
   /**
@@ -361,12 +361,12 @@ export class EpubService {
     <dc:identifier id="book-id">urn:uuid:${uuid}</dc:identifier>
     <dc:title>${this.escapeXml(metadata.title)}</dc:title>
     ${metadata.author ? `<dc:creator>${this.escapeXml(metadata.author)}</dc:creator>` : ''}
-    <dc:language>${metadata.language || 'en'}</dc:language>
-    <dc:date>${pubdate}</dc:date>
+    <dc:language>${this.escapeXml(metadata.language || 'en')}</dc:language>
+    <dc:date>${this.escapeXml(pubdate)}</dc:date>
     ${metadata.publisher ? `<dc:publisher>${this.escapeXml(metadata.publisher)}</dc:publisher>` : ''}
     ${metadata.description ? `<dc:description>${this.escapeXml(metadata.description)}</dc:description>` : ''}
     ${metadata.rights ? `<dc:rights>${this.escapeXml(metadata.rights)}</dc:rights>` : ''}
-    ${metadata.isbn ? `<dc:identifier id="isbn">${metadata.isbn}</dc:identifier>` : ''}
+    ${metadata.isbn ? `<dc:identifier id="isbn">${this.escapeXml(metadata.isbn)}</dc:identifier>` : ''}
     <meta property="dcterms:modified">${new Date().toISOString().replace(/\.\d{3}Z$/, 'Z')}</meta>
   </metadata>
   <manifest>

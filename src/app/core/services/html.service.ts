@@ -285,17 +285,17 @@ export class HtmlService {
   }
 
   /**
-   * Estrai testo puro da HTML (strip tags)
+   * Estrai testo puro da HTML (strip tags).
+   * Usa DOMParser per isolare il parsing dal documento live: questo evita
+   * il fetch di <img src> e l'esecuzione di handler come onerror anche se
+   * l'input contiene HTML malevolo.
    * @param html HTML sorgente
    * @returns Testo puro
    */
   extractText(html: string): string {
-    // Sanitize prima per sicurezza
     const sanitized = this.sanitize(html);
-
-    const tempDiv = document.createElement('div');
-    tempDiv.innerHTML = sanitized;
-    return tempDiv.textContent || tempDiv.innerText || '';
+    const doc = new DOMParser().parseFromString(sanitized, 'text/html');
+    return doc.body?.textContent ?? '';
   }
 
   /**
@@ -333,14 +333,16 @@ export class HtmlService {
   }
 
   /**
-   * Unescape HTML entities
+   * Unescape HTML entities (anche numeriche e decimali).
+   * Usa <textarea> che non esegue markup (nessun fetch di <img>, nessun
+   * handler inline) ma decodifica correttamente tutte le entity.
    * @param html HTML con entities
    * @returns Testo unescaped
    */
   unescapeHtml(html: string): string {
-    const div = document.createElement('div');
-    div.innerHTML = html;
-    return div.textContent || div.innerText || '';
+    const textarea = document.createElement('textarea');
+    textarea.innerHTML = html;
+    return textarea.value;
   }
 
   /**

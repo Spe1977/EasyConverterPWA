@@ -86,6 +86,7 @@ export class ConverterService {
     [ConversionFormat.MD]: [
       { target: ConversionFormat.TXT, reliability: 'text-only' },
       { target: ConversionFormat.HTML, reliability: 'structured' },
+      { target: ConversionFormat.RTF, reliability: 'best-effort' },
       { target: ConversionFormat.PDF, reliability: 'best-effort' },
       { target: ConversionFormat.EPUB, reliability: 'structured' },
       { target: ConversionFormat.BASE64, reliability: 'lossless' },
@@ -152,11 +153,14 @@ export class ConverterService {
     ],
     [ConversionFormat.YAML]: [
       { target: ConversionFormat.JSON, reliability: 'structured' },
+      { target: ConversionFormat.XML, reliability: 'structured' },
+      { target: ConversionFormat.TXT, reliability: 'text-only' },
       { target: ConversionFormat.BASE64, reliability: 'lossless' },
     ],
     [ConversionFormat.XML]: [
       { target: ConversionFormat.JSON, reliability: 'structured' },
       { target: ConversionFormat.YAML, reliability: 'structured' },
+      { target: ConversionFormat.TXT, reliability: 'text-only' },
       { target: ConversionFormat.CSV, reliability: 'requires-uniform-data' },
       { target: ConversionFormat.XLSX, reliability: 'requires-uniform-data' },
       { target: ConversionFormat.HTML, reliability: 'requires-uniform-data' },
@@ -555,6 +559,15 @@ export class ConverterService {
         const html = await marked(content);
         const pdfBytes = await this.pdfService.createPdfFromHtml(html);
         return new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
+
+      case ConversionFormat.RTF:
+        // MD -> HTML -> RTF
+        const mdHtml = await marked(content);
+        const mdRtf = await this.rtfService.htmlToRtf(
+          this.sanitizeHtmlForUntrustedInput(mdHtml),
+          options['rtfOptions']
+        );
+        return new Blob([mdRtf], { type: 'application/rtf' });
 
       case ConversionFormat.EPUB:
         // MD -> EPUB
@@ -995,6 +1008,17 @@ export class ConverterService {
         const jsonString = JSON.stringify(jsonData, null, 2);
         return new Blob([jsonString], { type: 'application/json' });
       }
+      // YAML -> XML (via JSON intermediate)
+      if (targetFormat === ConversionFormat.XML) {
+        const jsonData = await this.yamlService.yamlToJson(content, options['yamlOptions']);
+        const xmlString = await this.xmlService.jsonToXml(jsonData, options['xmlOptions']);
+        return new Blob([xmlString], { type: 'application/xml' });
+      }
+      // YAML -> TXT (testo formattato human-readable)
+      if (targetFormat === ConversionFormat.TXT) {
+        const textData = await this.yamlService.yamlToText(content);
+        return new Blob([textData], { type: 'text/plain' });
+      }
       // YAML -> BASE64
       if (targetFormat === ConversionFormat.BASE64) {
         const yamlBlob = new Blob([content], { type: 'application/x-yaml' });
@@ -1029,6 +1053,11 @@ export class ConverterService {
         const jsonString = JSON.stringify(jsonData, null, 2);
         const yamlString = await this.yamlService.jsonToYaml(jsonString, options['yamlOptions']);
         return new Blob([yamlString], { type: 'application/x-yaml' });
+      }
+      // XML -> TXT (testo formattato human-readable)
+      if (targetFormat === ConversionFormat.TXT) {
+        const xmlText = await this.xmlService.xmlToText(content);
+        return new Blob([xmlText], { type: 'text/plain' });
       }
       // XML -> BASE64
       if (targetFormat === ConversionFormat.BASE64) {
@@ -1183,7 +1212,12 @@ export class ConverterService {
   private readFileAsText(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
+      reader.onload = () => {
+        const text = reader.result as string;
+        // Strip UTF-8 BOM: senza questa rimozione il BOM finisce nella prima
+        // cella CSV o nella prima riga MD/HTML causando parser mismatch.
+        resolve(text.charCodeAt(0) === 0xfeff ? text.slice(1) : text);
+      };
       reader.onerror = () => reject(reader.error ?? new Error('Failed to read file as text'));
       reader.onabort = () => reject(new Error('File read aborted'));
       reader.readAsText(file);
@@ -1987,6 +2021,14 @@ export class ConverterService {
     let flattened = false;
 
     for (const [key, nestedValue] of Object.entries(value)) {
+      // Scarta chiavi pericolose per prototype pollution: JSON.parse ora
+      // mappa __proto__ come own property, ma passarla a Object.assign o
+      // scriverla su un oggetto letterale potrebbe ancora contaminare la
+      // catena del prototipo in vecchie runtime o librerie di serializzazione.
+      if (key === '__proto__' || key === 'constructor' || key === 'prototype') {
+        continue;
+      }
+
       const nextKey = prefix ? `${prefix}.${key}` : key;
       const normalizedKey = this.normalizeTabularColumnKey(nextKey, options.columnNaming);
 
@@ -2024,7 +2066,11 @@ export class ConverterService {
           return null;
         }
 
-        Object.assign(row, nestedRow.row);
+        // Copia esplicita delle sole own properties: evita di propagare
+        // qualunque chiave pericolosa eventualmente sfuggita al filtro.
+        for (const [nestedKey, nestedVal] of Object.entries(nestedRow.row)) {
+          row[nestedKey] = nestedVal;
+        }
         flattened = true;
         continue;
       }
